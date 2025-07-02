@@ -176,4 +176,4 @@ pids
 .mdx
 
 # Content cache
-.content-cache
+.content-cache/out/
