@@ -15,7 +15,6 @@
 
 # next.js
 /.next/
-/out/
 
 # production
 /build
@@ -53,7 +52,6 @@ next-env.d.ts
 
 # Next.js
 /.next/
-/out/
 
 # Production build
 /build
