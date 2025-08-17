@@ -1,5 +1,5 @@
 import ReadingLayout from '@/components/ReadingLayout'
-import { Mail, GitHub, Linkedin, MessageCircle, Send } from 'lucide-react'
+import { Mail, Github, Linkedin, MessageCircle, Send } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
 
 export default function ContactPage() {
@@ -33,7 +33,7 @@ export default function ContactPage() {
 
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
-                    <GitHub className="w-6 h-6 text-slate-600 dark:text-slate-400" />
+                    <Github className="w-6 h-6 text-slate-600 dark:text-slate-400" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900 dark:text-slate-100">GitHub</h3>

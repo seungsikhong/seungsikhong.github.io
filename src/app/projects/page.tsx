@@ -1,5 +1,5 @@
 import ReadingLayout from '@/components/ReadingLayout'
-import { ExternalLink, GitHub, Globe } from 'lucide-react'
+import { ExternalLink, Github, Globe } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
 
 export default function ProjectsPage() {
@@ -113,7 +113,7 @@ export default function ProjectsPage() {
                       rel="noopener noreferrer"
                       className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-200"
                     >
-                      <GitHub className="w-4 h-4" />
+                      <Github className="w-4 h-4" />
                       <span className="text-sm font-medium">GitHub</span>
                     </a>
                     <a
@@ -148,7 +148,7 @@ export default function ProjectsPage() {
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-2 px-6 py-3 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors duration-200"
             >
-              <GitHub className="w-5 h-5" />
+                                  <Github className="w-5 h-5" />
               <span className="font-medium">GitHub 방문하기</span>
               <ExternalLink className="w-4 h-4" />
             </a>
