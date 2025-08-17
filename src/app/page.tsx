@@ -15,7 +15,7 @@ import LeftSidebar from '@/components/LeftSidebar'
 export default function HomePage() {
   const searchParams = useSearchParams()
   const [currentView, setCurrentView] = useState('home')
-  const [currentData, setCurrentData] = useState(null)
+  const [currentData, setCurrentData] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [sidebarVisible, setSidebarVisible] = useState(false)
