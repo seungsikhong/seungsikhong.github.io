@@ -1,91 +1,85 @@
-# GitHub Pages 자동 배포 워크플로우
-#
-# 이 워크플로우는 다음과 같은 작업을 수행합니다:
-# 1. MDX 파일들을 정적 JSON 데이터로 변환
-# 2. Next.js 프로젝트를 정적 사이트로 빌드
-# 3. GitHub Pages에 자동 배포
-#
-# 실행 조건:
-# - main 브랜치에 푸시할 때
-# - main 브랜치로 PR이 생성될 때
 name: Deploy to GitHub Pages
 
-# 워크플로우 실행 조건
+# 워크플로우 실행 조건 (보안 강화)
 on:
   push:
-    branches: [ main ]  # main 브랜치에 푸시할 때 실행
+    branches: [ main ]  # main 브랜치 푸시 시만 배포 (PR 제거로 보안 강화)
   pull_request:
-    branches: [ main ]  # main 브랜치로 PR 생성 시 실행
+    branches: [ main ]  # PR에서는 빌드 테스트만 수행 (배포 X)
 
-# GitHub Pages 배포에 필요한 최소 권한 설정 (보안 최적화)
+# GitHub Pages 배포에 필요한 최소 권한 설정
 permissions:
-  contents: read      # 저장소 코드 읽기 권한만 (최소 권한)
+  contents: read      # 저장소 읽기 권한만 (write 권한 제거)
   pages: write        # GitHub Pages 배포 권한
-  id-token: write     # 인증 토큰 생성 권한
+  id-token: write     # OIDC 토큰 생성 권한
 
 # 동시 실행 방지 (배포 충돌 방지)
 concurrency:
-  group: "pages"      # 같은 그룹의 워크플로우는 하나씩만 실행
-  cancel-in-progress: false  # 진행 중인 워크플로우 취소하지 않음
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  # 빌드 및 배포 작업
-  build-and-deploy:
-    runs-on: ubuntu-latest  # Ubuntu 최신 버전에서 실행
+  # 빌드 작업 (항상 실행)
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 저장소 코드 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Node.js 환경 설정
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # 3. 프로젝트 의존성 설치
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. MDX 파일을 정적 JSON 데이터로 변환
+      - name: Generate static data from MDX
+        run: npm run build-data
+
+      # 5. GitHub Pages 설정 (공식 방법)
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        with:
+          # Next.js 정적 익스포트 설정
+          static_site_generator: next
+
+      # 6. Next.js 프로젝트 빌드
+      - name: Build Next.js project
+        run: npm run build
+
+      # 7. 빌드 결과 확인
+      - name: Check build output
+        run: |
+          ls -la out/
+          echo "Build completed successfully!"
+
+      # 8. 배포용 아티팩트 업로드 (공식 방법)
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  # 배포 작업 (main 브랜치에서만 실행)
+  deploy:
+    # 배포 환경 설정 (추가 보안)
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
+    runs-on: ubuntu-latest
+    needs: build
+
+    # main 브랜치 푸시 시에만 배포 실행
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
     steps:
-    # 1. 저장소 코드 체크아웃
-    # GitHub 저장소의 코드를 가져옵니다
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    # 2. Node.js 환경 설정
-    # Node.js 18 환경을 설정하고 npm 캐시를 활성화합니다
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'  # Node.js 18 버전 사용
-        cache: 'npm'        # npm 캐시 활성화 (빌드 속도 향상)
-
-    # 3. 프로젝트 의존성 설치
-    # package.json에 정의된 모든 의존성을 설치합니다
-    - name: Install dependencies
-      run: npm ci  # package-lock.json 기반으로 정확한 버전 설치
-
-    # 4. MDX 파일을 정적 JSON 데이터로 변환
-    # src/content/posts/의 MDX 파일들을 정적 JSON 데이터로 변환합니다
-    - name: Generate static data from MDX
-      run: npm run build-data
-
-    # 5. Next.js 프로젝트 빌드
-    # Next.js 프로젝트를 정적 사이트로 빌드합니다 (out/ 디렉토리 생성)
-    - name: Build Next.js project
-      run: npm run build
-
-    # 6. 빌드 결과 확인
-    # out 디렉토리가 제대로 생성되었는지 확인
-    - name: Check build output
-      run: |
-        ls -la out/
-        echo "Build completed successfully!"
-
-    # 7. GitHub Pages 설정 파일 생성
-    # Next.js 정적 사이트가 GitHub Pages에서 제대로 작동하도록 설정
-    - name: Create GitHub Pages configuration
-      run: |
-        echo "/*" > out/_redirects
-        echo "  /index.html 200" >> out/_redirects
-
-    # 8. GitHub Pages에 배포 (보안 최적화)
-    # 빌드된 정적 사이트를 GitHub Pages에 배포합니다
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main'  # main 브랜치에서만 배포
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}  # GitHub 인증 토큰
-        publish_dir: ./out  # 배포할 디렉토리 (Next.js 빌드 결과물)
-        force_orphan: true  # 기존 gh-pages 브랜치를 완전히 교체
+      # 9. GitHub Pages에 배포 (공식 방법)
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
