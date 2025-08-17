@@ -19,7 +19,7 @@ on:
 
 # GitHub Pages 배포에 필요한 권한 설정
 permissions:
-  contents: read      # 저장소 코드 읽기 권한
+  contents: read      # 저장소 코드 읽기 권한만
   pages: write        # GitHub Pages 배포 권한
   id-token: write     # 인증 토큰 생성 권한
 
@@ -62,7 +62,14 @@ jobs:
     - name: Build Next.js project
       run: npm run build
 
-    # 6. GitHub Pages 설정 파일 생성
+    # 6. 빌드 결과 확인
+    # out 디렉토리가 제대로 생성되었는지 확인
+    - name: Check build output
+      run: |
+        ls -la out/
+        echo "Build completed successfully!"
+
+    # 7. GitHub Pages 설정 파일 생성
     # Next.js 정적 사이트가 GitHub Pages에서 제대로 작동하도록 설정
     - name: Create GitHub Pages configuration
       run: |
