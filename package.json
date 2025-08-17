@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "dev-full": "node scripts/dev.js",
+    "build": "node scripts/simple-markdown.js && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build-data": "node scripts/simple-markdown.js",
+    "watch-mdx": "node scripts/watch-mdx.js"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.0",
@@ -16,11 +19,16 @@
     "@types/mdx": "^2.0.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "gray-matter": "^4.0.3",
     "lucide-react": "^0.485.0",
     "next": "15.3.4",
     "next-seo": "^6.8.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "remark": "^15.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-html": "^16.0.1",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

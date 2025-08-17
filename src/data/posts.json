@@ -1,0 +1,99 @@
+{
+  "posts": [
+    {
+      "slug": "hello-world",
+      "title": "Hello World - MDX 시스템 테스트",
+      "excerpt": "MDX 콘텐츠 시스템이 제대로 작동하는지 테스트하는 첫 번째 포스트입니다.",
+      "date": "2025-01-15",
+      "category": "Test",
+      "tags": [
+        "MDX",
+        "Next.js",
+        "Test"
+      ],
+      "readTime": "3분",
+      "views": 0,
+      "content": "<br><br><br>이것은 <strong>MDX 시스템</strong>의 첫 번째 테스트 포스트입니다.<br><br><h2>MDX의 장점</h2><br><br>MDX를 사용하면 다음과 같은 장점이 있습니다:<br><br><li><strong>마크다운</strong>의 간편함</li><br><li><strong>React 컴포넌트</strong> 삽입 가능</li><br><li><strong>프론트매터</strong>로 메타데이터 관리</li><br><li><strong>TypeScript</strong> 지원</li><br><br><h2>코드 예시</h2><br><br><pre><code class=\"language-typescript\">function greet(name: string) {<br>  return <code>Hello, ${name}!</code>;<br>}<br><br>console.log(greet('MDX'));<br></code></pre><br><br><h2>리스트 예시</h2><br><br><li>첫 번째 항목</li><br><li>두 번째 항목</li><br><li>세 번째 항목</li><br><br><h2>인용문 예시</h2><br><br><blockquote>MDX는 마크다운과 JSX를 결합한 강력한 포맷입니다.</blockquote><br><blockquote></blockquote><br><blockquote>— MDX 공식 문서</blockquote><br><br><h2>테이블 예시</h2><br><br><tr><td>기능</td><td>설명</td><td>상태</td></tr><br><tr><td>------</td><td>------</td><td>------</td></tr><br><tr><td>마크다운</td><td>기본 마크다운 문법</td><td>✅</td></tr><br><tr><td>React 컴포넌트</td><td>JSX 삽입 가능</td><td>✅</td></tr><br><tr><td>프론트매터</td><td>메타데이터 관리</td><td>✅</td></tr><br><tr><td>TypeScript</td><td>타입 안전성</td><td>✅</td></tr><br><br>이제 MDX 시스템이 제대로 작동하는지 확인해보세요!<br>"
+    }
+  ],
+  "categories": [
+    "Test"
+  ],
+  "tags": [
+    "MDX",
+    "Next.js",
+    "Test"
+  ],
+  "postsByCategory": {
+    "Test": [
+      {
+        "slug": "hello-world",
+        "title": "Hello World - MDX 시스템 테스트",
+        "excerpt": "MDX 콘텐츠 시스템이 제대로 작동하는지 테스트하는 첫 번째 포스트입니다.",
+        "date": "2025-01-15",
+        "category": "Test",
+        "tags": [
+          "MDX",
+          "Next.js",
+          "Test"
+        ],
+        "readTime": "3분",
+        "views": 0,
+        "content": "<br><br><br>이것은 <strong>MDX 시스템</strong>의 첫 번째 테스트 포스트입니다.<br><br><h2>MDX의 장점</h2><br><br>MDX를 사용하면 다음과 같은 장점이 있습니다:<br><br><li><strong>마크다운</strong>의 간편함</li><br><li><strong>React 컴포넌트</strong> 삽입 가능</li><br><li><strong>프론트매터</strong>로 메타데이터 관리</li><br><li><strong>TypeScript</strong> 지원</li><br><br><h2>코드 예시</h2><br><br><pre><code class=\"language-typescript\">function greet(name: string) {<br>  return <code>Hello, ${name}!</code>;<br>}<br><br>console.log(greet('MDX'));<br></code></pre><br><br><h2>리스트 예시</h2><br><br><li>첫 번째 항목</li><br><li>두 번째 항목</li><br><li>세 번째 항목</li><br><br><h2>인용문 예시</h2><br><br><blockquote>MDX는 마크다운과 JSX를 결합한 강력한 포맷입니다.</blockquote><br><blockquote></blockquote><br><blockquote>— MDX 공식 문서</blockquote><br><br><h2>테이블 예시</h2><br><br><tr><td>기능</td><td>설명</td><td>상태</td></tr><br><tr><td>------</td><td>------</td><td>------</td></tr><br><tr><td>마크다운</td><td>기본 마크다운 문법</td><td>✅</td></tr><br><tr><td>React 컴포넌트</td><td>JSX 삽입 가능</td><td>✅</td></tr><br><tr><td>프론트매터</td><td>메타데이터 관리</td><td>✅</td></tr><br><tr><td>TypeScript</td><td>타입 안전성</td><td>✅</td></tr><br><br>이제 MDX 시스템이 제대로 작동하는지 확인해보세요!<br>"
+      }
+    ]
+  },
+  "postsByTag": {
+    "MDX": [
+      {
+        "slug": "hello-world",
+        "title": "Hello World - MDX 시스템 테스트",
+        "excerpt": "MDX 콘텐츠 시스템이 제대로 작동하는지 테스트하는 첫 번째 포스트입니다.",
+        "date": "2025-01-15",
+        "category": "Test",
+        "tags": [
+          "MDX",
+          "Next.js",
+          "Test"
+        ],
+        "readTime": "3분",
+        "views": 0,
+        "content": "<br><br><br>이것은 <strong>MDX 시스템</strong>의 첫 번째 테스트 포스트입니다.<br><br><h2>MDX의 장점</h2><br><br>MDX를 사용하면 다음과 같은 장점이 있습니다:<br><br><li><strong>마크다운</strong>의 간편함</li><br><li><strong>React 컴포넌트</strong> 삽입 가능</li><br><li><strong>프론트매터</strong>로 메타데이터 관리</li><br><li><strong>TypeScript</strong> 지원</li><br><br><h2>코드 예시</h2><br><br><pre><code class=\"language-typescript\">function greet(name: string) {<br>  return <code>Hello, ${name}!</code>;<br>}<br><br>console.log(greet('MDX'));<br></code></pre><br><br><h2>리스트 예시</h2><br><br><li>첫 번째 항목</li><br><li>두 번째 항목</li><br><li>세 번째 항목</li><br><br><h2>인용문 예시</h2><br><br><blockquote>MDX는 마크다운과 JSX를 결합한 강력한 포맷입니다.</blockquote><br><blockquote></blockquote><br><blockquote>— MDX 공식 문서</blockquote><br><br><h2>테이블 예시</h2><br><br><tr><td>기능</td><td>설명</td><td>상태</td></tr><br><tr><td>------</td><td>------</td><td>------</td></tr><br><tr><td>마크다운</td><td>기본 마크다운 문법</td><td>✅</td></tr><br><tr><td>React 컴포넌트</td><td>JSX 삽입 가능</td><td>✅</td></tr><br><tr><td>프론트매터</td><td>메타데이터 관리</td><td>✅</td></tr><br><tr><td>TypeScript</td><td>타입 안전성</td><td>✅</td></tr><br><br>이제 MDX 시스템이 제대로 작동하는지 확인해보세요!<br>"
+      }
+    ],
+    "Next.js": [
+      {
+        "slug": "hello-world",
+        "title": "Hello World - MDX 시스템 테스트",
+        "excerpt": "MDX 콘텐츠 시스템이 제대로 작동하는지 테스트하는 첫 번째 포스트입니다.",
+        "date": "2025-01-15",
+        "category": "Test",
+        "tags": [
+          "MDX",
+          "Next.js",
+          "Test"
+        ],
+        "readTime": "3분",
+        "views": 0,
+        "content": "<br><br><br>이것은 <strong>MDX 시스템</strong>의 첫 번째 테스트 포스트입니다.<br><br><h2>MDX의 장점</h2><br><br>MDX를 사용하면 다음과 같은 장점이 있습니다:<br><br><li><strong>마크다운</strong>의 간편함</li><br><li><strong>React 컴포넌트</strong> 삽입 가능</li><br><li><strong>프론트매터</strong>로 메타데이터 관리</li><br><li><strong>TypeScript</strong> 지원</li><br><br><h2>코드 예시</h2><br><br><pre><code class=\"language-typescript\">function greet(name: string) {<br>  return <code>Hello, ${name}!</code>;<br>}<br><br>console.log(greet('MDX'));<br></code></pre><br><br><h2>리스트 예시</h2><br><br><li>첫 번째 항목</li><br><li>두 번째 항목</li><br><li>세 번째 항목</li><br><br><h2>인용문 예시</h2><br><br><blockquote>MDX는 마크다운과 JSX를 결합한 강력한 포맷입니다.</blockquote><br><blockquote></blockquote><br><blockquote>— MDX 공식 문서</blockquote><br><br><h2>테이블 예시</h2><br><br><tr><td>기능</td><td>설명</td><td>상태</td></tr><br><tr><td>------</td><td>------</td><td>------</td></tr><br><tr><td>마크다운</td><td>기본 마크다운 문법</td><td>✅</td></tr><br><tr><td>React 컴포넌트</td><td>JSX 삽입 가능</td><td>✅</td></tr><br><tr><td>프론트매터</td><td>메타데이터 관리</td><td>✅</td></tr><br><tr><td>TypeScript</td><td>타입 안전성</td><td>✅</td></tr><br><br>이제 MDX 시스템이 제대로 작동하는지 확인해보세요!<br>"
+      }
+    ],
+    "Test": [
+      {
+        "slug": "hello-world",
+        "title": "Hello World - MDX 시스템 테스트",
+        "excerpt": "MDX 콘텐츠 시스템이 제대로 작동하는지 테스트하는 첫 번째 포스트입니다.",
+        "date": "2025-01-15",
+        "category": "Test",
+        "tags": [
+          "MDX",
+          "Next.js",
+          "Test"
+        ],
+        "readTime": "3분",
+        "views": 0,
+        "content": "<br><br><br>이것은 <strong>MDX 시스템</strong>의 첫 번째 테스트 포스트입니다.<br><br><h2>MDX의 장점</h2><br><br>MDX를 사용하면 다음과 같은 장점이 있습니다:<br><br><li><strong>마크다운</strong>의 간편함</li><br><li><strong>React 컴포넌트</strong> 삽입 가능</li><br><li><strong>프론트매터</strong>로 메타데이터 관리</li><br><li><strong>TypeScript</strong> 지원</li><br><br><h2>코드 예시</h2><br><br><pre><code class=\"language-typescript\">function greet(name: string) {<br>  return <code>Hello, ${name}!</code>;<br>}<br><br>console.log(greet('MDX'));<br></code></pre><br><br><h2>리스트 예시</h2><br><br><li>첫 번째 항목</li><br><li>두 번째 항목</li><br><li>세 번째 항목</li><br><br><h2>인용문 예시</h2><br><br><blockquote>MDX는 마크다운과 JSX를 결합한 강력한 포맷입니다.</blockquote><br><blockquote></blockquote><br><blockquote>— MDX 공식 문서</blockquote><br><br><h2>테이블 예시</h2><br><br><tr><td>기능</td><td>설명</td><td>상태</td></tr><br><tr><td>------</td><td>------</td><td>------</td></tr><br><tr><td>마크다운</td><td>기본 마크다운 문법</td><td>✅</td></tr><br><tr><td>React 컴포넌트</td><td>JSX 삽입 가능</td><td>✅</td></tr><br><tr><td>프론트매터</td><td>메타데이터 관리</td><td>✅</td></tr><br><tr><td>TypeScript</td><td>타입 안전성</td><td>✅</td></tr><br><br>이제 MDX 시스템이 제대로 작동하는지 확인해보세요!<br>"
+      }
+    ]
+  }
+}
