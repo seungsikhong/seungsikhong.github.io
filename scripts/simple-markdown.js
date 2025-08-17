@@ -6,6 +6,7 @@ const matter = require('gray-matter')
 
 const postsDirectory = path.join(process.cwd(), 'src/content/posts')
 const outputFile = path.join(process.cwd(), 'src/data/posts.json')
+const outDirectory = path.join(process.cwd(), 'out')
 
 // 간단한 마크다운 → HTML 변환 함수
 function markdownToHtml(markdown) {
@@ -58,9 +59,135 @@ function markdownToHtml(markdown) {
   return html
 }
 
+// 정적 페이지 생성 (동적 라우트 대신)
+function createStaticPages(posts, categories) {
+  try {
+    // out 디렉토리 정리
+    if (fs.existsSync(outDirectory)) {
+      fs.rmSync(outDirectory, { recursive: true, force: true })
+    }
+    
+    // 기본 디렉토리 생성
+    const directories = [
+      outDirectory,
+      path.join(outDirectory, 'menu'),
+      path.join(outDirectory, 'category'),
+      path.join(outDirectory, 'posts'),
+      path.join(outDirectory, 'about'),
+      path.join(outDirectory, 'projects'),
+      path.join(outDirectory, 'contact'),
+    ]
+    
+    directories.forEach(dir => {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true })
+      }
+    })
+
+    // 메뉴별 정적 페이지 생성
+    const menuPages = ['project'] // 활성화된 메뉴들
+    menuPages.forEach(menuId => {
+      const menuDir = path.join(outDirectory, 'menu', menuId)
+      if (!fs.existsSync(menuDir)) {
+        fs.mkdirSync(menuDir, { recursive: true })
+      }
+      
+      // index.html 생성 (빈 파일, 실제 내용은 클라이언트에서 로드)
+      const indexHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${menuId} - SeungSik Hong</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        // 클라이언트 사이드 라우팅을 위한 리다이렉트
+        window.location.href = '/?menu=${menuId}';
+    </script>
+</body>
+</html>`
+      
+      fs.writeFileSync(path.join(menuDir, 'index.html'), indexHtml)
+    })
+
+    // 카테고리별 정적 페이지 생성
+    categories.forEach(category => {
+      const categoryDir = path.join(outDirectory, 'category', category.toLowerCase())
+      if (!fs.existsSync(categoryDir)) {
+        fs.mkdirSync(categoryDir, { recursive: true })
+      }
+      
+      // index.html 생성
+      const indexHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${category} - SeungSik Hong</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        // 클라이언트 사이드 라우팅을 위한 리다이렉트
+        window.location.href = '/?category=${category.toLowerCase()}';
+    </script>
+</body>
+</html>`
+      
+      fs.writeFileSync(path.join(categoryDir, 'index.html'), indexHtml)
+    })
+
+    // 포스트별 정적 페이지 생성
+    posts.forEach(post => {
+      const postDir = path.join(outDirectory, 'posts', post.slug)
+      if (!fs.existsSync(postDir)) {
+        fs.mkdirSync(postDir, { recursive: true })
+      }
+      
+      // index.html 생성
+      const indexHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${post.title} - SeungSik Hong</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        // 클라이언트 사이드 라우팅을 위한 리다이렉트
+        window.location.href = '/?post=${post.slug}';
+    </script>
+</body>
+</html>`
+      
+      fs.writeFileSync(path.join(postDir, 'index.html'), indexHtml)
+    })
+
+    console.log('✅ 정적 페이지 생성 완료')
+  } catch (error) {
+    console.error('❌ 정적 페이지 생성 중 오류:', error)
+  }
+}
+
+// GitBlog 최적화된 빌드 준비
+function prepareGitBlogBuild(posts, categories) {
+  try {
+    // 정적 페이지 생성
+    createStaticPages(posts, categories)
+    console.log('✅ GitBlog 빌드 준비 완료')
+  } catch (error) {
+    console.error('❌ GitBlog 빌드 준비 중 오류:', error)
+  }
+}
+
 // MDX 파일들을 읽어서 정적 데이터 생성
 function generateStaticData() {
   try {
+    console.log('🔄 GitBlog 정적 데이터 생성 시작...')
+    
     const fileNames = fs.readdirSync(postsDirectory)
     const allPostsData = fileNames
       .filter((fileName) => fileName.endsWith('.mdx'))
@@ -118,14 +245,19 @@ function generateStaticData() {
     console.log(`📊 총 ${posts.length}개의 포스트 처리됨`)
     console.log(`🏷️ 카테고리: ${categories.join(', ')}`)
     console.log(`🏷️ 태그: ${tags.join(', ')}`)
-    
+
+    // GitBlog 빌드 준비
+    prepareGitBlogBuild(posts, categories)
+
+    console.log('🎉 GitBlog 빌드 준비 완료!')
+
   } catch (error) {
-    console.error('❌ 정적 데이터 생성 실패:', error)
+    console.error('❌ 정적 데이터 생성 중 오류:', error)
     process.exit(1)
   }
 }
 
-// 스크립트 실행
+// 스크립트가 직접 실행될 때만 실행
 if (require.main === module) {
   generateStaticData()
 }

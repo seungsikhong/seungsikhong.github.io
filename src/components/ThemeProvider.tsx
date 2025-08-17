@@ -18,19 +18,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true)
-    // localStorage에서 저장된 테마 불러오기
-    const savedTheme = localStorage.getItem('theme') as Theme
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    // 브라우저 환경에서만 localStorage 접근
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme') as Theme
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 
-    if (savedTheme) {
-      setTheme(savedTheme)
-    } else if (prefersDark) {
-      setTheme('dark')
+      if (savedTheme) {
+        setTheme(savedTheme)
+      } else if (prefersDark) {
+        setTheme('dark')
+      }
     }
   }, [])
 
   useEffect(() => {
-    if (mounted) {
+    if (mounted && typeof window !== 'undefined') {
       const root = window.document.documentElement
       root.classList.remove('light', 'dark')
       root.classList.add(theme)
@@ -57,7 +59,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function useTheme() {
   const context = useContext(ThemeContext)
   if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider')
+    // 정적 내보내기에서 안전한 기본값 반환
+    return {
+      theme: 'light' as const,
+      toggleTheme: () => {
+        console.warn('ThemeProvider not available in static export')
+      }
+    }
   }
   return context
 }

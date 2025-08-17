@@ -1,4 +1,6 @@
 // 헤더 컴포넌트
+'use client'
+
 import ThemeToggle from './ThemeToggle'
 
 export default function Header() {

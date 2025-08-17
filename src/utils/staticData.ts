@@ -1,6 +1,15 @@
 import postsData from '@/data/posts.json'
 import { PostMeta, Post } from './mdx'
 
+// 타입 안전한 헬퍼 함수들
+function getPostsByCategorySafe(category: string): PostMeta[] {
+  return postsData.postsByCategory[category as keyof typeof postsData.postsByCategory] || []
+}
+
+function getPostsByTagSafe(tag: string): PostMeta[] {
+  return postsData.postsByTag[tag as keyof typeof postsData.postsByTag] || []
+}
+
 // 정적 데이터에서 포스트 메타데이터 가져오기
 export function getAllPostsMeta(): PostMeta[] {
   return postsData.posts
@@ -19,12 +28,12 @@ export function getPostBySlug(slug: string): Post | null {
 
 // 카테고리별 포스트 가져오기
 export function getPostsByCategory(category: string): PostMeta[] {
-  return postsData.postsByCategory[category] || []
+  return getPostsByCategorySafe(category)
 }
 
 // 태그별 포스트 가져오기
 export function getPostsByTag(tag: string): PostMeta[] {
-  return postsData.postsByTag[tag] || []
+  return getPostsByTagSafe(tag)
 }
 
 // 모든 카테고리 가져오기

@@ -6,10 +6,13 @@
     "dev": "next dev --turbopack",
     "dev-full": "node scripts/dev.js",
     "build": "node scripts/simple-markdown.js && next build",
+    "build:clean": "rm -rf out && npm run build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "build-data": "node scripts/simple-markdown.js",
-    "watch-mdx": "node scripts/watch-mdx.js"
+    "watch-mdx": "node scripts/watch-mdx.js",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.0",
