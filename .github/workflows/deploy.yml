@@ -17,9 +17,9 @@ on:
   pull_request:
     branches: [ main ]  # main 브랜치로 PR 생성 시 실행
 
-# GitHub Pages 배포에 필요한 권한 설정
+# GitHub Pages 배포에 필요한 최소 권한 설정 (보안 최적화)
 permissions:
-  contents: read      # 저장소 코드 읽기 권한만
+  contents: read      # 저장소 코드 읽기 권한만 (최소 권한)
   pages: write        # GitHub Pages 배포 권한
   id-token: write     # 인증 토큰 생성 권한
 
@@ -32,6 +32,9 @@ jobs:
   # 빌드 및 배포 작업
   build-and-deploy:
     runs-on: ubuntu-latest  # Ubuntu 최신 버전에서 실행
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
     # 1. 저장소 코드 체크아웃
@@ -76,9 +79,10 @@ jobs:
         echo "/*" > out/_redirects
         echo "  /index.html 200" >> out/_redirects
 
-    # 7. GitHub Pages에 배포
+    # 8. GitHub Pages에 배포 (보안 최적화)
     # 빌드된 정적 사이트를 GitHub Pages에 배포합니다
     - name: Deploy to GitHub Pages
+      id: deployment
       uses: peaceiris/actions-gh-pages@v3
       if: github.ref == 'refs/heads/main'  # main 브랜치에서만 배포
       with:
