@@ -267,7 +267,7 @@ export default function HomePage() {
 
           {currentPosts.length > 0 ? (
             <div className="grid gap-8 mb-12">
-              {currentPosts.map((post) => (
+              {currentPosts.map((post: any) => (
                 <article
                   key={post.slug}
                   className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 dark:border-slate-700 overflow-hidden group"
@@ -279,7 +279,7 @@ export default function HomePage() {
                           {post.category}
                         </span>
                         <div className="flex space-x-2">
-                          {post.tags.slice(0, 3).map((tag) => (
+                          {post.tags.slice(0, 3).map((tag: any) => (
                             <span
                               key={tag}
                               className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs rounded-full"
@@ -355,10 +355,10 @@ export default function HomePage() {
     const categoryInfo = category.charAt(0).toUpperCase() + category.slice(1)
 
     const searchedPosts = searchQuery.trim() 
-      ? categoryPosts.filter(post => 
+      ? categoryPosts.filter((post: any) =>
           post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+          post.tags.some((tag: any) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
         )
       : categoryPosts
 
@@ -498,7 +498,7 @@ export default function HomePage() {
     const post = currentData
     const tableOfContents = post.content
       .match(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/g)
-      ?.map((match, index) => {
+      ?.map((match: any, index: any) => {
         const level = parseInt(match.match(/<h([1-6])/)?.[1] || '1')
         const title = match.replace(/<[^>]*>/g, '')
         const id = title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-')
@@ -541,7 +541,7 @@ export default function HomePage() {
 
             {post.tags.length > 0 && (
               <div className="flex items-center justify-center space-x-2 mt-6">
-                {post.tags.map((tag) => (
+                {post.tags.map((tag: any) => (
                   <span
                     key={tag}
                     className="px-3 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 rounded-full"
