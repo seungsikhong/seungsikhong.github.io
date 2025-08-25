@@ -67,7 +67,7 @@ jobs:
 
       # 7. 배포용 아티팩트 업로드
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./out
 
