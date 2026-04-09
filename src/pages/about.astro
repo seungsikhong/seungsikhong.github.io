@@ -1,0 +1,27 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro'
+---
+
+<SiteLayout title="About" description="About.">
+  <article class="mx-auto flex w-full max-w-3xl flex-col">
+    <header class="border-b border-border/70 pb-8">
+      <h1
+        class="text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3rem] md:leading-[1.08]"
+        data-i18n="about_title"
+      >
+        About.
+      </h1>
+    </header>
+
+    <div class="mt-10 space-y-6 text-[1.04rem] leading-8 text-muted-foreground">
+      <p data-i18n="about_body_1">
+        This blog keeps notes on frontend implementation, interface structure, and the work of
+        making screens easier to read.
+      </p>
+      <p data-i18n="about_body_2">
+        The point is not volume. It is to keep the decisions that survived real work and quiet
+        iteration.
+      </p>
+    </div>
+  </article>
+</SiteLayout>

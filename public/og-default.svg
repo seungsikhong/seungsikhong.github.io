@@ -1,0 +1,38 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="84" y1="54" x2="1098" y2="612" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#091123"/>
+      <stop offset="1" stop-color="#0D1830"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1035 108) rotate(133.889) scale(285.194)">
+      <stop stop-color="#5B84FF" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#5B84FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(116 546) rotate(-17.7715) scale(294.818)">
+      <stop stop-color="#315FC9" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#315FC9" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-120" y="-140" width="1480" height="910" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" rx="36" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="1199" height="629" rx="35.5" stroke="#27324B"/>
+
+  <g filter="url(#blur)">
+    <circle cx="1035" cy="108" r="180" fill="url(#glowA)"/>
+    <circle cx="116" cy="546" r="180" fill="url(#glowB)"/>
+  </g>
+
+  <line x1="68" y1="1.5" x2="1132" y2="1.5" stroke="#6A88DA" stroke-opacity="0.35"/>
+
+  <text x="68" y="108" fill="#95A7D7" font-family="Inter, Pretendard, system-ui, sans-serif" font-size="22" font-weight="500" letter-spacing="0.22em">SEUNGSIK HONG</text>
+  <text x="68" y="282" fill="#F0F4FF" font-family="Inter, Pretendard, system-ui, sans-serif" font-size="86" font-weight="600" letter-spacing="-0.06em">Code and thoughts.</text>
+  <text x="68" y="350" fill="#A8B6D4" font-family="Inter, Pretendard, system-ui, sans-serif" font-size="34" font-weight="400">Still building.</text>
+
+  <g transform="translate(68 548)">
+    <line x1="0" y1="1.5" x2="160" y2="1.5" stroke="#556483"/>
+    <text x="184" y="8" fill="#95A7D7" font-family="Inter, Pretendard, system-ui, sans-serif" font-size="20" font-weight="500" letter-spacing="0.08em">seungsikhong.github.io</text>
+  </g>
+</svg>

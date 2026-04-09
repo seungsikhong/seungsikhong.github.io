@@ -1,0 +1,246 @@
+---
+import SiteLayout from './SiteLayout.astro'
+import RightRail from '../components/post/RightRail.astro'
+import Comments from '../components/post/Comments.astro'
+import { getEnabledShareChannels, siteMeta } from '../config/site'
+import { formatDate } from '../utils/date'
+import { getCategoryHref } from '../utils/taxonomy'
+
+interface Heading {
+  depth: number
+  slug: string
+  text: string
+}
+
+interface Props {
+  title: string
+  description: string
+  category: string
+  publishedAt: Date
+  updatedAt?: Date
+  tags?: string[]
+  headings?: Heading[]
+  comments?: boolean
+  ogImage?: string
+}
+
+const {
+  title,
+  description,
+  category,
+  publishedAt,
+  updatedAt,
+  tags = [],
+  headings = [],
+  comments = false,
+  ogImage,
+} = Astro.props
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? siteMeta.url).toString()
+const articleImageUrl = new URL(ogImage ?? siteMeta.ogImage, Astro.site ?? siteMeta.url).toString()
+const enabledShareChannels = getEnabledShareChannels()
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description,
+  url: canonicalUrl,
+  image: articleImageUrl,
+  datePublished: publishedAt.toISOString(),
+  ...(updatedAt ? { dateModified: updatedAt.toISOString() } : {}),
+  author: {
+    '@type': 'Person',
+    name: siteMeta.author,
+  },
+  publisher: {
+    '@type': 'Person',
+    name: siteMeta.author,
+  },
+  articleSection: category,
+  keywords: tags,
+  inLanguage: 'ko',
+  mainEntityOfPage: canonicalUrl,
+}
+---
+
+<SiteLayout
+  title={title}
+  description={description}
+  showRightRail={true}
+  ogType="article"
+  ogImage={ogImage}
+  jsonLd={articleSchema}
+>
+  <div class="mx-auto flex w-full max-w-5xl flex-col">
+    <article class="mx-auto w-full max-w-3xl">
+      <header class="border-b border-border/70 pb-8">
+        <div class="mb-6">
+          <a href="/" class="article-home-link" aria-label="홈으로 이동">
+            <span data-i18n="nav_index">Index</span>
+          </a>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <a
+            href={getCategoryHref(category)}
+            class="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-semibold uppercase tracking-[0.16em] text-primary transition hover:bg-primary/14 hover:text-primary/90"
+          >
+            {category}
+          </a>
+          <span>{formatDate(publishedAt)}</span>
+          <span
+            data-goatcounter-count={Astro.url.pathname}
+            data-goatcounter-render="views"
+            data-goatcounter-fallback="—"
+          >
+            —
+          </span>
+          {
+            updatedAt && (
+              <span data-i18n-template="article_updated" data-i18n-date={formatDate(updatedAt)}>
+                업데이트 {formatDate(updatedAt)}
+              </span>
+            )
+          }
+          <span data-i18n={comments ? 'comments_enabled' : 'comments_disabled'}>
+            {comments ? 'Comments enabled' : 'Comments disabled'}
+          </span>
+        </div>
+
+        <h1 class="mt-5 text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3.35rem] md:leading-[1.05]">
+          {title}
+        </h1>
+        <p class="mt-5 max-w-2xl text-[1.05rem] leading-8 text-muted-foreground">{description}</p>
+
+        {
+          tags.length > 0 && (
+            <ul class="mt-6 flex flex-wrap gap-2" aria-label="태그">
+              {tags.map((tag) => (
+                <li class="rounded-full border border-border/70 bg-transparent px-3 py-1 text-sm text-muted-foreground">
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </header>
+
+      <div class="article-content mt-12" data-reading-area>
+        <slot />
+      </div>
+    </article>
+
+    {
+      enabledShareChannels.length > 0 && (
+        <section class="mx-auto mt-14 w-full max-w-3xl border-t border-border/70 pt-8">
+          <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <h2
+              class="text-[0.78rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+              data-i18n="share_title"
+            >
+              Share
+            </h2>
+            <div class="flex flex-wrap gap-2.5" data-share-root data-share-url={canonicalUrl} data-share-title={title}>
+              {
+                enabledShareChannels.includes('copy') && (
+                  <button class="share-button" type="button" data-share-copy>
+                    <span data-i18n="share_copy">Copy link</span>
+                  </button>
+                )
+              }
+              {
+                enabledShareChannels.includes('x') && (
+                  <a
+                    class="share-button"
+                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(canonicalUrl)}&text=${encodeURIComponent(title)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span data-i18n="share_x">Share on X</span>
+                  </a>
+                )
+              }
+              {
+                enabledShareChannels.includes('linkedin') && (
+                  <a
+                    class="share-button"
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonicalUrl)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span data-i18n="share_linkedin">Share on LinkedIn</span>
+                  </a>
+                )
+              }
+              {
+                enabledShareChannels.includes('facebook') && (
+                  <a
+                    class="share-button"
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonicalUrl)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span data-i18n="share_facebook">Share on Facebook</span>
+                  </a>
+                )
+              }
+              {
+                enabledShareChannels.includes('email') && (
+                  <a
+                    class="share-button"
+                    href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${title}\n${canonicalUrl}`)}`}
+                  >
+                    <span data-i18n="share_email">Share via Email</span>
+                  </a>
+                )
+              }
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    <div class="mx-auto w-full max-w-3xl">
+      <Comments enabled={comments} />
+    </div>
+  </div>
+
+  <Fragment slot="right">
+    <RightRail headings={headings} />
+  </Fragment>
+
+  <script is:inline>
+    (() => {
+      const root = document.querySelector('[data-share-root]')
+      const copyButton = document.querySelector('[data-share-copy]')
+      if (!(root instanceof HTMLElement) || !(copyButton instanceof HTMLButtonElement)) return
+
+      const shareUrl = root.dataset.shareUrl || window.location.href
+      const shareTitle = root.dataset.shareTitle || document.title
+      const getMessage = (key) => {
+        const locale = window.__SITE_LOCALE__ === 'ko' ? 'ko' : 'en'
+        return window.__SITE_MESSAGES__?.[locale]?.[key] || window.__SITE_MESSAGES__?.en?.[key] || key
+      }
+
+      copyButton.addEventListener('click', async () => {
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: shareTitle, url: shareUrl })
+            return
+          } catch {}
+        }
+
+        try {
+          await navigator.clipboard.writeText(shareUrl)
+          const label = copyButton.querySelector('span')
+          if (!(label instanceof HTMLElement)) return
+          const previous = label.textContent || getMessage('share_copy')
+          label.textContent = getMessage('share_copied')
+          window.setTimeout(() => {
+            label.textContent = previous
+          }, 1400)
+        } catch {}
+      })
+    })()
+  </script>
+</SiteLayout>

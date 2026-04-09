@@ -1,0 +1,10 @@
+{
+  "name": "SeungSik Hong",
+  "short_name": "SeungSik",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "lang": "ko",
+  "description": "코드와 생각을 기록하는 개인 기술 블로그"
+}
