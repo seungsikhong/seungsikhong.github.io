@@ -582,6 +582,23 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
             const messageFor = (locale, key) => messages[locale]?.[key] || messages.en?.[key] || key
             const interpolate = (template, params) =>
               template.replace(/\{(\w+)\}/g, (_, token) => params[token] || '')
+            const getToday = () => {
+              const now = new Date()
+              const year = now.getFullYear()
+              const month = `${now.getMonth() + 1}`.padStart(2, '0')
+              const day = `${now.getDate()}`.padStart(2, '0')
+              return `${year}-${month}-${day}`
+            }
+            const resolvePeriod = (value) => {
+              if (!value) return ''
+              return value === 'today' ? getToday() : value
+            }
+            const getCountKey = (node) => {
+              const path = node.dataset.goatcounterCount || ''
+              const start = resolvePeriod(node.dataset.goatcounterStart)
+              const end = resolvePeriod(node.dataset.goatcounterEnd)
+              return `${path}|${start}|${end}`
+            }
 
             const parseCount = (value) => {
               if (typeof value === 'number' && Number.isFinite(value)) return value
@@ -599,7 +616,7 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
               if (!path) return
 
               const fallback = node.dataset.goatcounterFallback || '—'
-              const count = counts.get(path)
+              const count = counts.get(getCountKey(node))
               if (typeof count !== 'number') {
                 node.textContent = fallback
                 return
@@ -620,16 +637,34 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
               targets.forEach((node) => renderNode(node))
             }
 
-            const uniquePaths = [...new Set(targets.map((node) => node.dataset.goatcounterCount).filter(Boolean))]
+            const uniqueRequests = [
+              ...new Map(
+                targets
+                  .map((node) => {
+                    const path = node.dataset.goatcounterCount
+                    if (!path) return null
+
+                    const start = resolvePeriod(node.dataset.goatcounterStart)
+                    const end = resolvePeriod(node.dataset.goatcounterEnd)
+                    const key = `${path}|${start}|${end}`
+                    return [key, { key, path, start, end }]
+                  })
+                  .filter(Boolean)
+              ).values(),
+            ]
 
             Promise.all(
-              uniquePaths.map(async (path) => {
+              uniqueRequests.map(async ({ key, path, start, end }) => {
                 try {
-                  const response = await fetch(`${base}/counter/${encodeURIComponent(path)}.json`)
+                  const url = new URL(`${base}/counter/${encodeURIComponent(path)}.json`)
+                  if (start) url.searchParams.set('start', start)
+                  if (end) url.searchParams.set('end', end)
+
+                  const response = await fetch(url.toString())
                   if (!response.ok) return
                   const data = await response.json()
                   const parsed = parseCount(data?.count ?? data?.count_unique)
-                  if (parsed !== null) counts.set(path, parsed)
+                  if (parsed !== null) counts.set(key, parsed)
                 } catch {}
               })
             ).finally(renderAll)
