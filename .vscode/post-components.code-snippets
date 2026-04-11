@@ -1,0 +1,25 @@
+{
+  "PostImage": {
+    "scope": "mdx",
+    "prefix": "postimage",
+    "body": [
+      "<PostImage",
+      "  src=\"${1:/images/posts/my-post/example.png}\"",
+      "  alt=\"${2:Image description}\"",
+      "  caption=\"${3:Optional caption}\"",
+      "  size=\"${4|narrow,wide,full|}\"",
+      "/>"
+    ],
+    "description": "Insert a post image component"
+  },
+  "Callout": {
+    "scope": "mdx",
+    "prefix": "callout",
+    "body": [
+      "<Callout type=\"${1|note,tip,warning|}\" title=\"${2:Note}\">",
+      "  ${3:Write the callout content here.}",
+      "</Callout>"
+    ],
+    "description": "Insert a callout component"
+  }
+}

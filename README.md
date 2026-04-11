@@ -25,7 +25,7 @@ npm run new-post -- --title "글 제목" --category Notes --slug my-post
 ```
 
 이 스크립트는 아래를 한 번에 만듭니다.
-- `src/content/posts/<slug>.md`
+- `src/content/posts/<slug>.mdx`
 - `public/images/posts/<slug>/`
 - `public/og/posts/<slug>.svg`
 - `public/og/posts/<slug>.png`
@@ -52,6 +52,25 @@ npm run add-image -- --slug my-post "/path/one.png" "/path/two.jpg"
 ![설명](/images/posts/my-post/example.png)
 ```
 
+### MDX 글쓰기
+
+새 포스트는 기본적으로 `.mdx`로 생성됩니다. 아래 컴포넌트는 별도 import 없이 바로 쓸 수 있습니다.
+
+```mdx
+<Callout type="note" title="메모">
+  남겨둘 판단이나 제약을 적습니다.
+</Callout>
+
+<PostImage
+  src="/images/posts/my-post/example.png"
+  alt="예시 이미지"
+  caption="선택 캡션"
+  size="wide"
+/>
+```
+
+`PostImage`의 `size`는 `narrow`, `wide`, `full`을 지원합니다.
+
 ### 포스트 메타데이터
 
 허용 카테고리는 `src/content/categories.ts`에서 관리합니다.
@@ -68,6 +87,15 @@ tags:
 ogImage: /og/posts/my-post.png
 ---
 ```
+
+## VS Code 추천
+
+`.vscode/extensions.json`에 추천 확장을 넣어두었습니다.
+- Astro
+- MDX
+- Front Matter
+- Markdown All in One
+- Paste Image
 
 ## 운영 메모
 

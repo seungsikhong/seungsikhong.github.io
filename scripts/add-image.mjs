@@ -27,9 +27,13 @@ if (!slug || fileArgs.length === 0) {
   process.exit(1)
 }
 
-const markdownPath = join(postsDir, `${slug}.md`)
-if (!existsSync(markdownPath)) {
-  console.error(`Post not found: ${markdownPath}`)
+const markdownCandidates = [
+  join(postsDir, `${slug}.mdx`),
+  join(postsDir, `${slug}.md`),
+]
+const markdownPath = markdownCandidates.find((path) => existsSync(path))
+if (!markdownPath) {
+  console.error(`Post not found: ${markdownCandidates[0]}`)
   process.exit(1)
 }
 

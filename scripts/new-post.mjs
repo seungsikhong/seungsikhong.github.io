@@ -49,13 +49,15 @@ const slugify = (value) => {
 }
 
 const slug = providedSlug || slugify(title)
-const markdownPath = join(postsDir, `${slug}.md`)
+const mdPath = join(postsDir, `${slug}.md`)
+const mdxPath = join(postsDir, `${slug}.mdx`)
+const markdownPath = mdxPath
 const imageDir = join(imageRoot, slug)
 const ogSvgPath = join(ogRoot, `${slug}.svg`)
 const ogPngPath = join(ogRoot, `${slug}.png`)
 
-if (existsSync(markdownPath)) {
-  console.error(`Post already exists: ${markdownPath}`)
+if (existsSync(mdPath) || existsSync(mdxPath)) {
+  console.error(`Post already exists: ${existsSync(mdxPath) ? mdxPath : mdPath}`)
   process.exit(1)
 }
 
@@ -175,9 +177,27 @@ tags:
 ogImage: ${ogImagePath}
 ---
 
-![Add image description](/images/posts/${slug}/example.png)
+## Overview
 
 Start writing here.
+
+## Notes
+
+- Replace this draft with your actual content.
+- \`PostImage\` and \`Callout\` are available in MDX posts without import.
+
+\`\`\`mdx
+<Callout type="note" title="Note">
+  A decision, reminder, or tradeoff.
+</Callout>
+
+<PostImage
+  src="/images/posts/${slug}/example.png"
+  alt="Add image description"
+  caption="Optional caption"
+  size="wide"
+/>
+\`\`\`
 `
 
 writeFileSync(markdownPath, markdown)
@@ -189,4 +209,4 @@ console.log('')
 console.log('Next steps:')
 console.log(`1. Put images into: public/images/posts/${slug}/`)
 console.log(`2. Or run: npm run add-image -- --slug ${slug} "/absolute/path/to/image.png"`)
-console.log(`3. Start writing in: src/content/posts/${slug}.md`)
+console.log(`3. Start writing in: src/content/posts/${slug}.mdx`)

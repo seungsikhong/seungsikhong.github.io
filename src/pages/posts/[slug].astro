@@ -1,6 +1,8 @@
 ---
 import { render } from 'astro:content'
 import ArticleLayout from '../../layouts/ArticleLayout.astro'
+import Callout from '../../components/post/Callout.astro'
+import PostImage from '../../components/post/PostImage.astro'
 import { getPublishedPosts } from '../../utils/content'
 import { getPostSlug } from '../../utils/posts'
 
@@ -28,5 +30,5 @@ const { Content, headings } = await render(post)
   comments={post.data.comments}
   ogImage={post.data.ogImage}
 >
-  <Content />
+  <Content components={{ Callout, PostImage }} />
 </ArticleLayout>

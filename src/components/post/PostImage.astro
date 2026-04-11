@@ -1,0 +1,26 @@
+---
+interface Props {
+  src: string
+  alt: string
+  caption?: string
+  size?: 'narrow' | 'wide' | 'full'
+}
+
+const {
+  src,
+  alt,
+  caption,
+  size = 'wide',
+} = Astro.props
+
+const sizeClassMap = {
+  narrow: 'mx-auto max-w-2xl',
+  wide: 'w-full',
+  full: 'w-full md:-mx-12 md:w-[calc(100%+6rem)]',
+} as const
+---
+
+<figure class:list={['my-8', sizeClassMap[size]]}>
+  <img src={src} alt={alt} loading="lazy" />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
