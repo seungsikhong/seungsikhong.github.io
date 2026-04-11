@@ -1,0 +1,13 @@
+{
+  "pasteImage.path": "${projectRoot}/public/images/posts/${currentFileNameWithoutExt}",
+  "pasteImage.basePath": "${projectRoot}/public",
+  "pasteImage.forceUnixStyleSeparator": true,
+  "pasteImage.prefix": "/",
+  "pasteImage.defaultName": "${currentFileNameWithoutExt}-YYYYMMDD-HHmmss",
+  "pasteImage.showFilePathConfirmInputBox": true,
+  "pasteImage.filePathConfirmInputBoxMode": "onlyName",
+  "pasteImage.insertPattern": "<PostImage\n  src=\"${imageFilePath}\"\n  alt=\"${imageFileNameWithoutExt}\"\n  caption=\"${imageFileNameWithoutExt}\"\n  size=\"wide\"\n/>",
+  "files.associations": {
+    "*.mdx": "mdx"
+  }
+}

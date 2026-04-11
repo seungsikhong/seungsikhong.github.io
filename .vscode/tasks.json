@@ -1,0 +1,51 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "blog:new-post",
+      "type": "shell",
+      "command": "npm run new-post -- --title \"${input:postTitle}\" --category \"${input:postCategory}\" --slug \"${input:postSlug}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "blog:dev",
+      "type": "npm",
+      "script": "dev",
+      "problemMatcher": []
+    },
+    {
+      "label": "blog:build",
+      "type": "npm",
+      "script": "build",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "postTitle",
+      "type": "promptString",
+      "description": "Post title"
+    },
+    {
+      "id": "postCategory",
+      "type": "pickString",
+      "description": "Category",
+      "options": [
+        "Architecture",
+        "Implementation",
+        "Interface",
+        "Notes"
+      ],
+      "default": "Notes"
+    },
+    {
+      "id": "postSlug",
+      "type": "promptString",
+      "description": "Slug (leave blank to derive from title)",
+      "default": ""
+    }
+  ]
+}

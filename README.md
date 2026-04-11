@@ -97,6 +97,31 @@ ogImage: /og/posts/my-post.png
 - Markdown All in One
 - Paste Image
 
+### VS Code에서 쓰는 흐름
+
+1. `Cmd/Ctrl + Shift + P` → `Tasks: Run Task`
+2. `blog:new-post` 실행
+3. 제목/카테고리/slug 입력
+4. 생성된 `src/content/posts/<slug>.mdx`에서 글 작성
+
+### 이미지 붙여넣기
+
+`Paste Image` 확장을 설치하면 현재 글의 slug 기준으로 이미지가 자동 저장됩니다.
+
+- 저장 위치: `public/images/posts/<slug>/`
+- 붙여넣기 결과: `PostImage` 컴포넌트 블록 자동 삽입
+
+예:
+
+```mdx
+<PostImage
+  src="/images/posts/my-post/my-post-20260411-133000.png"
+  alt="my-post-20260411-133000"
+  caption="my-post-20260411-133000"
+  size="wide"
+/>
+```
+
 ## 운영 메모
 
 - 댓글은 `src/config/site.ts`의 Giscus 설정을 채우면 활성화됩니다.
