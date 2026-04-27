@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.14",
-    "@astrojs/react": "^5.0.2",
+    "@astrojs/react": "^5.0.4",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.2.2",
     "@types/react": "^19.2.14",
