@@ -23,7 +23,7 @@ const filteredPosts = posts
 
 <SiteLayout
   title={categoryName}
-  description={`${categoryName} · ${count}`}
+  description={`${categoryName} 카테고리에 쌓인 글 ${count}개를 모았습니다.`}
 >
   <div class="mx-auto flex w-full max-w-5xl flex-col gap-8">
     <section class="border-b border-border/70 pb-8">
@@ -35,7 +35,7 @@ const filteredPosts = posts
         data-i18n-template="topic_count"
         data-i18n-count={count}
       >
-        Posts: {count}
+        글 {count}개
       </p>
     </section>
 
@@ -68,7 +68,7 @@ const filteredPosts = posts
                   —
                 </span>
                 <span data-i18n={post.data.comments ? 'comment_on' : 'comment_off'}>
-                  {post.data.comments ? 'Comments on' : 'Comments off'}
+                  {post.data.comments ? '댓글 허용' : '댓글 없음'}
                 </span>
               </div>
             </article>

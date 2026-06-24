@@ -4,7 +4,7 @@
     {
       "label": "blog:new-post",
       "type": "shell",
-      "command": "npm run new-post -- --title \"${input:postTitle}\" --category \"${input:postCategory}\" --slug \"${input:postSlug}\"",
+      "command": "npm run new-post -- --title \"${input:postTitle}\" --category \"${input:postCategory}\"",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -31,21 +31,9 @@
     },
     {
       "id": "postCategory",
-      "type": "pickString",
-      "description": "Category",
-      "options": [
-        "Architecture",
-        "Implementation",
-        "Interface",
-        "Notes"
-      ],
-      "default": "Notes"
-    },
-    {
-      "id": "postSlug",
       "type": "promptString",
-      "description": "Slug (leave blank to derive from title)",
-      "default": ""
+      "description": "Category",
+      "default": "AI"
     }
   ]
 }

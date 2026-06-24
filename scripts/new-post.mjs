@@ -1,4 +1,4 @@
-import { mkdirSync, existsSync, writeFileSync } from 'node:fs'
+import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFileSync } from 'node:child_process'
@@ -8,7 +8,19 @@ const root = join(__dirname, '..')
 const postsDir = join(root, 'src', 'content', 'posts')
 const imageRoot = join(root, 'public', 'images', 'posts')
 const ogRoot = join(root, 'public', 'og', 'posts')
-const allowedCategories = ['Architecture', 'Implementation', 'Interface', 'Notes']
+const categoriesPath = join(root, 'src', 'config', 'post-categories.json')
+const allowedCategories = JSON.parse(readFileSync(categoriesPath, 'utf8'))
+
+if (
+  !Array.isArray(allowedCategories) ||
+  allowedCategories.length === 0 ||
+  allowedCategories.some((category) => typeof category !== 'string' || !category.trim())
+) {
+  console.error(`Invalid categories file: ${categoriesPath}`)
+  process.exit(1)
+}
+
+const defaultCategory = allowedCategories[0]
 
 const args = process.argv.slice(2)
 const readArg = (name) => {
@@ -19,11 +31,11 @@ const readArg = (name) => {
 }
 
 const title = readArg('--title')
-const category = readArg('--category') || 'Notes'
-const providedSlug = readArg('--slug')
+const category = readArg('--category') || defaultCategory
+const providedSlug = readArg('--slug')?.trim()
 
 if (!title) {
-  console.error('Usage: npm run new-post -- --title "Post title" --category Notes --slug my-post')
+  console.error(`Usage: npm run new-post -- --title "글 제목" --category ${defaultCategory}`)
   process.exit(1)
 }
 
@@ -33,7 +45,19 @@ if (!allowedCategories.includes(category)) {
   process.exit(1)
 }
 
-const today = new Date().toISOString().slice(0, 10)
+const getToday = () => {
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date())
+
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  return `${values.year}-${values.month}-${values.day}`
+}
+
+const today = getToday()
 
 const slugify = (value) => {
   const slug = value
@@ -45,10 +69,27 @@ const slugify = (value) => {
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
 
-  return slug || `post-${today}`
+  return slug
 }
 
-const slug = providedSlug || slugify(title)
+const postExists = (slug) =>
+  existsSync(join(postsDir, `${slug}.md`)) || existsSync(join(postsDir, `${slug}.mdx`))
+
+const getAutoSlug = () => {
+  const base = slugify(title) || slugify(category) || 'post'
+  const initialSlug = `${today}-${base}`
+  let slug = initialSlug
+  let index = 2
+
+  while (postExists(slug)) {
+    slug = `${initialSlug}-${index}`
+    index += 1
+  }
+
+  return slug
+}
+
+const slug = providedSlug ? slugify(providedSlug) || getAutoSlug() : getAutoSlug()
 const mdPath = join(postsDir, `${slug}.md`)
 const mdxPath = join(postsDir, `${slug}.mdx`)
 const markdownPath = mdxPath
@@ -150,8 +191,8 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
       .map((line, index) => `<tspan x="92" dy="${index === 0 ? 0 : 74}">${escapeXml(line)}</tspan>`)
       .join('')}
   </text>
-  <text x="92" y="486" fill="#95A1B7" font-family="Pretendard, Apple SD Gothic Neo, Noto Sans KR, system-ui, sans-serif" font-size="28">Code and thoughts.</text>
-  <text x="92" y="532" fill="#95A1B7" font-family="Pretendard, Apple SD Gothic Neo, Noto Sans KR, system-ui, sans-serif" font-size="28">Still building.</text>
+  <text x="92" y="486" fill="#95A1B7" font-family="Pretendard, Apple SD Gothic Neo, Noto Sans KR, system-ui, sans-serif" font-size="28">개발과 생각의 기록.</text>
+  <text x="92" y="532" fill="#95A1B7" font-family="Pretendard, Apple SD Gothic Neo, Noto Sans KR, system-ui, sans-serif" font-size="28">AI와 구현 경험을 남깁니다.</text>
   <text x="1008" y="548" text-anchor="end" fill="#8AA8FF" font-family="Pretendard, Apple SD Gothic Neo, Noto Sans KR, system-ui, sans-serif" font-size="24">${today}</text>
 </svg>
 `
@@ -159,43 +200,64 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
 writeFileSync(ogSvgPath, svg)
 
 let ogImagePath = `/og/posts/${slug}.svg`
-try {
-  execFileSync('sips', ['-s', 'format', 'png', ogSvgPath, '--out', ogPngPath], { stdio: 'ignore' })
+const renderPngWithSharp = async () => {
+  try {
+    const { default: sharp } = await import('sharp')
+    await sharp(ogSvgPath).png().toFile(ogPngPath)
+    return true
+  } catch {
+    return false
+  }
+}
+const renderPngWithSips = () => {
+  try {
+    execFileSync('sips', ['-s', 'format', 'png', ogSvgPath, '--out', ogPngPath], { stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+}
+
+if ((await renderPngWithSharp()) || renderPngWithSips()) {
   ogImagePath = `/og/posts/${slug}.png`
-} catch {
-  // Keep SVG as fallback if PNG conversion is unavailable.
 }
 
 const markdown = `---
-title: ${title}
-excerpt: Add a short summary.
-category: ${category}
+title: ${JSON.stringify(title)}
+excerpt: 검색 결과와 목록에 표시할 한 문장 요약을 적습니다.
+category: ${JSON.stringify(category)}
 publishedAt: ${today}
 comments: false
 tags:
-  - ${category}
+  - ${JSON.stringify(category)}
 ogImage: ${ogImagePath}
 ---
 
-## Overview
+## 시작하며
 
-Start writing here.
+이 글을 쓰게 된 배경을 적습니다.
 
-## Notes
+## 본문
 
-- Replace this draft with your actual content.
-- \`PostImage\` and \`Callout\` are available in MDX posts without import.
+실제 경험, 판단, 결과를 중심으로 작성합니다.
+
+## 남길 점
+
+- 나중에 다시 볼 판단이나 다음 실험을 적습니다.
+- \`PostImage\`와 \`Callout\`은 별도 import 없이 사용할 수 있습니다.
 
 \`\`\`mdx
-<Callout type="note" title="Note">
-  A decision, reminder, or tradeoff.
+<Callout type="note" title="메모">
+  결정, 제약, 다시 확인할 내용을 적습니다.
 </Callout>
 
 <PostImage
   src="/images/posts/${slug}/example.png"
-  alt="Add image description"
-  caption="Optional caption"
+  alt="이미지 설명"
+  caption="선택 캡션"
   size="wide"
+  width={1200}
+  height={675}
 />
 \`\`\`
 `

@@ -28,8 +28,8 @@
   <line x1="68" y1="1.5" x2="1132" y2="1.5" stroke="#6A88DA" stroke-opacity="0.35"/>
 
   <text x="68" y="108" fill="#95A7D7" font-family="Inter, Pretendard, system-ui, sans-serif" font-size="22" font-weight="500" letter-spacing="0.22em">SEUNGSIK HONG</text>
-  <text x="68" y="282" fill="#F0F4FF" font-family="Inter, Pretendard, system-ui, sans-serif" font-size="86" font-weight="600" letter-spacing="-0.06em">Code and thoughts.</text>
-  <text x="68" y="350" fill="#A8B6D4" font-family="Inter, Pretendard, system-ui, sans-serif" font-size="34" font-weight="400">Still building.</text>
+  <text x="68" y="282" fill="#F0F4FF" font-family="Inter, Pretendard, system-ui, sans-serif" font-size="86" font-weight="600" letter-spacing="-0.06em">개발과 생각의 기록.</text>
+  <text x="68" y="350" fill="#A8B6D4" font-family="Inter, Pretendard, system-ui, sans-serif" font-size="34" font-weight="400">AI와 구현 경험을 남깁니다.</text>
 
   <g transform="translate(68 548)">
     <line x1="0" y1="1.5" x2="160" y2="1.5" stroke="#556483"/>

@@ -1,9 +1,8 @@
 ---
 import LeftSidebar from '../components/layout/LeftSidebar.astro'
 import { ThemeToggle } from '../components/ui/theme-toggle'
-import { UI_MESSAGES } from '../config/i18n'
+import { buildNavigationGroups } from '../config/navigation'
 import {
-  buildNavigationGroups,
   getAnalyticsCountEndpoint,
   getAnalyticsSiteBase,
   hasAnalyticsProviderConfig,
@@ -19,6 +18,7 @@ interface Props {
   showRightRail?: boolean
   ogType?: 'website' | 'article'
   ogImage?: string
+  ogImageAlt?: string
   robots?: string
   jsonLd?: Record<string, unknown> | Record<string, unknown>[]
 }
@@ -29,7 +29,8 @@ const {
   showRightRail = false,
   ogType = 'website',
   ogImage,
-  robots = 'index,follow',
+  ogImageAlt = siteMeta.ogImageAlt,
+  robots = 'index,follow,max-image-preview:large',
   jsonLd,
 } = Astro.props
 
@@ -37,18 +38,23 @@ const posts = await getPublishedPosts()
 const navigationGroups = buildNavigationGroups(posts)
 const topicItems = buildCategoryItems(posts)
 const pageTitle = title === siteMeta.title ? title : `${title} | ${siteMeta.title}`
-const serializedMessages = JSON.stringify(UI_MESSAGES)
 const analyticsConfigured = hasAnalyticsProviderConfig()
 const analyticsCountEndpoint = getAnalyticsCountEndpoint()
 const analyticsBase = getAnalyticsSiteBase()
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? siteMeta.url).toString()
 const ogImageUrl = new URL(ogImage ?? siteMeta.ogImage, Astro.site ?? siteMeta.url).toString()
+const rssUrl = new URL('/rss.xml', Astro.site ?? siteMeta.url).toString()
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: siteMeta.title,
   url: siteMeta.url,
   description: siteMeta.description,
+  author: {
+    '@type': 'Person',
+    name: siteMeta.author,
+    url: siteMeta.authorUrl,
+  },
   inLanguage: 'ko',
 }
 const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [])]
@@ -73,15 +79,13 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Code and thoughts. Still building." />
+    <meta property="og:image:alt" content={ogImageAlt} />
     <meta name="twitter:card" content={siteMeta.twitterCard} />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
     <meta name="format-detection" content="telephone=no" />
-    <link rel="alternate" hrefLang="ko" href={canonicalUrl} />
-    <link rel="alternate" hrefLang="en" href={canonicalUrl} />
-    <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
+    <link rel="alternate" type="application/rss+xml" title={`${siteMeta.title} RSS`} href={rssUrl} />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#0b1020" />
     {
@@ -99,22 +103,8 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
         ></script>
       )
     }
-    <script is:inline define:vars={{ serializedMessages }}>
+    <script is:inline>
       (() => {
-        window.__SITE_MESSAGES__ = JSON.parse(serializedMessages)
-
-        const savedLocale = localStorage.getItem('site:locale')
-        const resolvedLocale =
-          savedLocale === 'ko' || savedLocale === 'en'
-            ? savedLocale
-            : navigator.language?.toLowerCase().startsWith('ko')
-              ? 'ko'
-              : 'en'
-
-        document.documentElement.dataset.locale = resolvedLocale
-        document.documentElement.lang = resolvedLocale
-        window.__SITE_LOCALE__ = resolvedLocale
-
         const savedTheme = localStorage.getItem('site:theme') || 'system'
         const resolved =
           savedTheme === 'system'
@@ -125,8 +115,11 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
 
         document.documentElement.dataset.themePreference = savedTheme
         document.documentElement.dataset.theme = resolved
+        document.documentElement.dataset.locale = 'ko'
+        document.documentElement.lang = 'ko'
         document.documentElement.classList.toggle('dark', resolved === 'dark')
         document.documentElement.style.colorScheme = resolved
+        window.__SITE_LOCALE__ = 'ko'
       })()
     </script>
   </head>
@@ -140,12 +133,12 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
     data-utility-visible="true"
   >
     <div class="edge-trigger edge-trigger-left" data-left-trigger aria-hidden="true">
-      <span class="edge-trigger-label">MENU</span>
+      <span class="edge-trigger-label">메뉴</span>
     </div>
     {
       showRightRail && (
         <div class="edge-trigger edge-trigger-right" data-right-trigger aria-hidden="true">
-          <span class="edge-trigger-label">TOC</span>
+          <span class="edge-trigger-label">목차</span>
         </div>
       )
     }
@@ -157,7 +150,7 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
         data-toggle-left
       >
         <span class="visually-hidden">좌측 메뉴 토글</span>
-        <span data-i18n="utility_menu">Menu</span>
+        <span>메뉴</span>
       </button>
 
       {
@@ -168,19 +161,10 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
             data-toggle-right
           >
             <span class="visually-hidden">우측 레일 토글</span>
-            <span data-i18n="utility_toc">TOC</span>
+            <span>목차</span>
           </button>
         )
       }
-
-      <button
-        class="inline-flex h-10 items-center justify-center rounded-full border border-border/70 bg-background/82 px-3 text-xs font-semibold tracking-[0.16em] text-foreground backdrop-blur-md transition hover:bg-accent hover:text-accent-foreground"
-        type="button"
-        data-locale-toggle
-        aria-label="언어 전환"
-      >
-        <span data-locale-label>EN</span>
-      </button>
 
       <ThemeToggle client:load />
 
@@ -189,7 +173,7 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
         type="button"
         data-utility-hide
       >
-        <span data-i18n="utility_hide">Hide</span>
+        <span>숨기기</span>
       </button>
     </div>
 
@@ -507,66 +491,6 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
       })()
     </script>
 
-    <script is:inline>
-      (() => {
-        const root = document.documentElement
-        const localeToggle = document.querySelector('[data-locale-toggle]')
-        const localeLabel = document.querySelector('[data-locale-label]')
-        const messages = window.__SITE_MESSAGES__ || {}
-
-        const messageFor = (locale, key) => messages[locale]?.[key] || messages.en?.[key] || key
-
-        const interpolate = (template, dataset) =>
-          template.replace(/\{(\w+)\}/g, (_, token) => {
-            const dataKey = `i18n${token.charAt(0).toUpperCase()}${token.slice(1)}`
-            return dataset[dataKey] || ''
-          })
-
-        const applyTranslations = (locale) => {
-          root.dataset.locale = locale
-          root.lang = locale
-          window.__SITE_LOCALE__ = locale
-
-          document.querySelectorAll('[data-i18n]').forEach((node) => {
-            const key = node.dataset.i18n
-            if (!key) return
-            node.textContent = messageFor(locale, key)
-          })
-
-          document.querySelectorAll('[data-i18n-template]').forEach((node) => {
-            const key = node.dataset.i18nTemplate
-            if (!key) return
-            node.textContent = interpolate(messageFor(locale, key), node.dataset)
-          })
-
-          if (localeLabel instanceof HTMLElement) {
-            localeLabel.textContent = locale.toUpperCase()
-          }
-
-          if (localeToggle instanceof HTMLButtonElement) {
-            localeToggle.setAttribute(
-              'aria-label',
-              locale === 'ko' ? '영문으로 전환' : 'Switch to Korean'
-            )
-          }
-
-          window.dispatchEvent(new CustomEvent('site-locale-change', { detail: { locale } }))
-        }
-
-        const setLocale = (locale, persist = true) => {
-          const nextLocale = locale === 'ko' ? 'ko' : 'en'
-          if (persist) localStorage.setItem('site:locale', nextLocale)
-          applyTranslations(nextLocale)
-        }
-
-        applyTranslations(root.dataset.locale === 'ko' ? 'ko' : 'en')
-
-        localeToggle?.addEventListener('click', () => {
-          setLocale(root.dataset.locale === 'ko' ? 'en' : 'ko')
-        })
-      })()
-    </script>
-
     {
       analyticsConfigured && (
         <script is:inline define:vars={{ analyticsBase }}>
@@ -575,13 +499,8 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
             const targets = Array.from(document.querySelectorAll('[data-goatcounter-count]'))
             if (!base || targets.length === 0) return
 
-            const messages = window.__SITE_MESSAGES__ || {}
             const counts = new Map()
 
-            const getLocale = () => (window.__SITE_LOCALE__ === 'ko' ? 'ko' : 'en')
-            const messageFor = (locale, key) => messages[locale]?.[key] || messages.en?.[key] || key
-            const interpolate = (template, params) =>
-              template.replace(/\{(\w+)\}/g, (_, token) => params[token] || '')
             const getToday = () => {
               const now = new Date()
               const year = now.getFullYear()
@@ -622,11 +541,10 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
                 return
               }
 
-              const locale = getLocale()
-              const formatted = new Intl.NumberFormat(locale).format(count)
+              const formatted = new Intl.NumberFormat('ko').format(count)
 
               if (node.dataset.goatcounterRender === 'views') {
-                node.textContent = interpolate(messageFor(locale, 'post_views'), { count: formatted })
+                node.textContent = `조회 ${formatted}`
                 return
               }
 
@@ -668,8 +586,6 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
                 } catch {}
               })
             ).finally(renderAll)
-
-            window.addEventListener('site-locale-change', renderAll)
           })()
         </script>
       )

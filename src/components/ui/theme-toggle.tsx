@@ -1,12 +1,16 @@
 import { MonitorCog, MoonStar, SunMedium } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { UI_MESSAGES, type SiteLocale } from '@/config/i18n'
 import { Button } from '@/components/ui/button'
 
 type ThemePreference = 'system' | 'light' | 'dark'
 
 const THEMES: ThemePreference[] = ['system', 'light', 'dark']
+const THEME_LABELS: Record<ThemePreference, string> = {
+  system: '시스템',
+  light: '라이트',
+  dark: '다크',
+}
 
 function resolveTheme(preference: ThemePreference) {
   if (preference !== 'system') return preference
@@ -33,18 +37,12 @@ function applyTheme(preference: ThemePreference, persist = true) {
   )
 }
 
-function getCurrentLocale(): SiteLocale {
-  return document.documentElement.dataset.locale === 'ko' ? 'ko' : 'en'
-}
-
 export function ThemeToggle() {
   const [theme, setTheme] = useState<ThemePreference>('system')
-  const [locale, setLocale] = useState<SiteLocale>('en')
 
   useEffect(() => {
     const saved = (localStorage.getItem('site:theme') as ThemePreference | null) || 'system'
     setTheme(saved)
-    setLocale(getCurrentLocale())
     applyTheme(saved, false)
 
     const media = window.matchMedia('(prefers-color-scheme: dark)')
@@ -55,38 +53,17 @@ export function ThemeToggle() {
     }
 
     media.addEventListener('change', handleMediaChange)
-    const handleLocaleChange = (event: Event) => {
-      const nextLocale =
-        event instanceof CustomEvent && event.detail?.locale === 'ko' ? 'ko' : getCurrentLocale()
-      setLocale(nextLocale)
-    }
-
-    window.addEventListener('site-locale-change', handleLocaleChange)
 
     return () => {
       media.removeEventListener('change', handleMediaChange)
-      window.removeEventListener('site-locale-change', handleLocaleChange)
     }
   }, [])
 
   const nextTheme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]
   const Icon = theme === 'dark' ? MoonStar : theme === 'light' ? SunMedium : MonitorCog
-  const label =
-    theme === 'dark'
-      ? UI_MESSAGES[locale].theme_dark
-      : theme === 'light'
-        ? UI_MESSAGES[locale].theme_light
-        : UI_MESSAGES[locale].theme_system
-  const nextLabel =
-    nextTheme === 'dark'
-      ? UI_MESSAGES[locale].theme_dark
-      : nextTheme === 'light'
-        ? UI_MESSAGES[locale].theme_light
-        : UI_MESSAGES[locale].theme_system
-  const ariaLabel =
-    locale === 'ko'
-      ? `현재 테마 ${label}, 클릭하면 ${nextLabel}로 전환`
-      : `Current theme ${label}. Click to switch to ${nextLabel}.`
+  const label = THEME_LABELS[theme]
+  const nextLabel = THEME_LABELS[nextTheme]
+  const ariaLabel = `현재 테마 ${label}, 클릭하면 ${nextLabel}로 전환`
 
   return (
     <Button

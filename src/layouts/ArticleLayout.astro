@@ -39,6 +39,7 @@ const {
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? siteMeta.url).toString()
 const articleImageUrl = new URL(ogImage ?? siteMeta.ogImage, Astro.site ?? siteMeta.url).toString()
 const enabledShareChannels = getEnabledShareChannels()
+const categoryUrl = new URL(getCategoryHref(category), Astro.site ?? siteMeta.url).toString()
 const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
@@ -47,19 +48,45 @@ const articleSchema = {
   url: canonicalUrl,
   image: articleImageUrl,
   datePublished: publishedAt.toISOString(),
-  ...(updatedAt ? { dateModified: updatedAt.toISOString() } : {}),
+  dateModified: (updatedAt ?? publishedAt).toISOString(),
   author: {
     '@type': 'Person',
     name: siteMeta.author,
+    url: siteMeta.authorUrl,
   },
   publisher: {
     '@type': 'Person',
     name: siteMeta.author,
+    url: siteMeta.authorUrl,
   },
   articleSection: category,
   keywords: tags,
   inLanguage: 'ko',
   mainEntityOfPage: canonicalUrl,
+}
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: '홈',
+      item: siteMeta.url,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: category,
+      item: categoryUrl,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: title,
+      item: canonicalUrl,
+    },
+  ],
 }
 ---
 
@@ -69,14 +96,15 @@ const articleSchema = {
   showRightRail={true}
   ogType="article"
   ogImage={ogImage}
-  jsonLd={articleSchema}
+  ogImageAlt={title}
+  jsonLd={[articleSchema, breadcrumbSchema]}
 >
   <div class="mx-auto flex w-full max-w-5xl flex-col">
     <article class="mx-auto w-full max-w-3xl">
       <header class="border-b border-border/70 pb-8">
         <div class="mb-6">
           <a href="/" class="article-home-link" aria-label="홈으로 이동">
-            <span data-i18n="nav_index">Index</span>
+            <span data-i18n="nav_index">홈</span>
           </a>
         </div>
 
@@ -103,7 +131,7 @@ const articleSchema = {
             )
           }
           <span data-i18n={comments ? 'comments_enabled' : 'comments_disabled'}>
-            {comments ? 'Comments enabled' : 'Comments disabled'}
+            {comments ? '댓글 허용' : '댓글 비활성화'}
           </span>
         </div>
 
@@ -138,13 +166,13 @@ const articleSchema = {
               class="text-[0.78rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
               data-i18n="share_title"
             >
-              Share
+              공유
             </h2>
             <div class="flex flex-wrap gap-2.5" data-share-root data-share-url={canonicalUrl} data-share-title={title}>
               {
                 enabledShareChannels.includes('copy') && (
                   <button class="share-button" type="button" data-share-copy>
-                    <span data-i18n="share_copy">Copy link</span>
+                    <span data-i18n="share_copy">링크 복사</span>
                   </button>
                 )
               }
@@ -156,7 +184,7 @@ const articleSchema = {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <span data-i18n="share_x">Share on X</span>
+                    <span data-i18n="share_x">X 공유</span>
                   </a>
                 )
               }
@@ -168,7 +196,7 @@ const articleSchema = {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <span data-i18n="share_linkedin">Share on LinkedIn</span>
+                    <span data-i18n="share_linkedin">LinkedIn 공유</span>
                   </a>
                 )
               }
@@ -180,7 +208,7 @@ const articleSchema = {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <span data-i18n="share_facebook">Share on Facebook</span>
+                    <span data-i18n="share_facebook">Facebook 공유</span>
                   </a>
                 )
               }
@@ -190,7 +218,7 @@ const articleSchema = {
                     class="share-button"
                     href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${title}\n${canonicalUrl}`)}`}
                   >
-                    <span data-i18n="share_email">Share via Email</span>
+                    <span data-i18n="share_email">이메일로 공유</span>
                   </a>
                 )
               }
@@ -217,10 +245,6 @@ const articleSchema = {
 
       const shareUrl = root.dataset.shareUrl || window.location.href
       const shareTitle = root.dataset.shareTitle || document.title
-      const getMessage = (key) => {
-        const locale = window.__SITE_LOCALE__ === 'ko' ? 'ko' : 'en'
-        return window.__SITE_MESSAGES__?.[locale]?.[key] || window.__SITE_MESSAGES__?.en?.[key] || key
-      }
 
       copyButton.addEventListener('click', async () => {
         if (navigator.share) {
@@ -234,8 +258,8 @@ const articleSchema = {
           await navigator.clipboard.writeText(shareUrl)
           const label = copyButton.querySelector('span')
           if (!(label instanceof HTMLElement)) return
-          const previous = label.textContent || getMessage('share_copy')
-          label.textContent = getMessage('share_copied')
+          const previous = label.textContent || '링크 복사'
+          label.textContent = '복사됨'
           window.setTimeout(() => {
             label.textContent = previous
           }, 1400)

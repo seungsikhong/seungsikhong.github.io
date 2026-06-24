@@ -2,25 +2,26 @@
 import SiteLayout from '../layouts/SiteLayout.astro'
 ---
 
-<SiteLayout title="About" description="About.">
+<SiteLayout
+  title="소개"
+  description="2021년부터 물류 시스템을 개발하며 얻은 구현 경험과 AI 활용 기록을 남기는 SeungSik Hong의 개인 기술 블로그입니다."
+>
   <article class="mx-auto flex w-full max-w-3xl flex-col">
     <header class="border-b border-border/70 pb-8">
       <h1
         class="text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3rem] md:leading-[1.08]"
         data-i18n="about_title"
       >
-        About.
+        소개
       </h1>
     </header>
 
     <div class="mt-10 space-y-6 text-[1.04rem] leading-8 text-muted-foreground">
       <p data-i18n="about_body_1">
-        This blog keeps notes on frontend implementation, interface structure, and the work of
-        making screens easier to read.
+        2021년 6월부터 물류 시스템 개발자로 일하고 있습니다.
       </p>
       <p data-i18n="about_body_2">
-        The point is not volume. It is to keep the decisions that survived real work and quiet
-        iteration.
+        개발 과정에서 마주한 문제, AI를 도구로 붙여보는 과정, 실제 업무에서 남은 판단을 기록합니다.
       </p>
     </div>
   </article>

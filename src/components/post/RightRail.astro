@@ -15,8 +15,8 @@ const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 
 
 <div class="flex h-full flex-col overflow-y-auto px-4 py-4" data-right-rail>
   <section class="rounded-[1rem] border border-border/70 bg-transparent p-4">
-    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary" data-i18n="reading_eyebrow">Reading</p>
-    <h2 class="mt-2 text-lg font-semibold tracking-tight text-foreground" data-i18n="reading_title">Progress</h2>
+    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary" data-i18n="reading_eyebrow">읽기</p>
+    <h2 class="mt-2 text-lg font-semibold tracking-tight text-foreground" data-i18n="reading_title">진행률</h2>
     <div class="mt-4 h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">
       <div
         class="h-full origin-left rounded-full bg-primary transition-transform duration-200"
@@ -26,13 +26,13 @@ const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 
     </div>
     <div class="mt-3 flex items-center justify-between text-xs text-muted-foreground">
       <span data-reading-progress-label>0%</span>
-      <span data-reading-progress-state data-i18n="reading_state_start">Not started</span>
+      <span data-reading-progress-state data-i18n="reading_state_start">시작 전</span>
     </div>
   </section>
 
   <section class="mt-4 rounded-[1rem] border border-border/70 bg-transparent p-4">
-    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary" data-i18n="toc_eyebrow">Context</p>
-    <h2 class="mt-2 text-lg font-semibold tracking-tight text-foreground" data-i18n="toc_title">Contents</h2>
+    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary" data-i18n="toc_eyebrow">구성</p>
+    <h2 class="mt-2 text-lg font-semibold tracking-tight text-foreground" data-i18n="toc_title">목차</h2>
     {
       toc.length > 0 ? (
         <ol class="mt-4 space-y-1.5">
@@ -50,7 +50,7 @@ const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 
         </ol>
       ) : (
         <p class="mt-4 rounded-2xl border border-dashed border-border/70 bg-muted/60 px-4 py-4 text-sm leading-6 text-muted-foreground" data-i18n="toc_empty">
-          No headings available yet.
+          표시할 목차가 아직 없습니다.
         </p>
       )
     }
@@ -70,11 +70,6 @@ const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 
     }
 
     const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
-    const getMessage = (key) => {
-      const locale = window.__SITE_LOCALE__ === 'ko' ? 'ko' : 'en'
-      return window.__SITE_MESSAGES__?.[locale]?.[key] || window.__SITE_MESSAGES__?.en?.[key] || key
-    }
-
     const updateProgress = () => {
       const rect = article.getBoundingClientRect()
       const articleTop = window.scrollY + rect.top
@@ -88,11 +83,11 @@ const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 
 
       if (progressState) {
         if (percent <= 5) {
-          progressState.textContent = getMessage('reading_state_start')
+          progressState.textContent = '시작 전'
         } else if (percent >= 95) {
-          progressState.textContent = getMessage('reading_state_end')
+          progressState.textContent = '마무리 중'
         } else {
-          progressState.textContent = getMessage('reading_state_mid')
+          progressState.textContent = '읽는 중'
         }
       }
     }
@@ -100,7 +95,6 @@ const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 
     updateProgress()
     window.addEventListener('scroll', updateProgress, { passive: true })
     window.addEventListener('resize', updateProgress)
-    window.addEventListener('site-locale-change', updateProgress)
 
     if (links.length === 0) {
       return
