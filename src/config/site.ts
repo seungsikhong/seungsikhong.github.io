@@ -2,7 +2,7 @@ export type ShareChannel = 'copy' | 'x' | 'linkedin' | 'facebook' | 'email'
 
 export const siteMeta = {
   name: 'SeungSik Hong',
-  title: 'AI와 물류 시스템 개발 기록 | SeungSik Hong',
+  title: 'SeungSik Hong',
   description: '물류 시스템 개발자가 AI, 개발 도구, 구현 과정에서 얻은 판단과 기록을 정리하는 개인 기술 블로그입니다.',
   url: 'https://seungsikhong.github.io',
   author: 'SeungSik Hong',
