@@ -2,6 +2,8 @@ import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFileSync } from 'node:child_process'
+import { createInterface } from 'node:readline/promises'
+import { stdin as input, stdout as output } from 'node:process'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, '..')
@@ -9,18 +11,38 @@ const postsDir = join(root, 'src', 'content', 'posts')
 const imageRoot = join(root, 'public', 'images', 'posts')
 const ogRoot = join(root, 'public', 'og', 'posts')
 const categoriesPath = join(root, 'src', 'config', 'post-categories.json')
+const tagsPath = join(root, 'src', 'config', 'post-tags.json')
 const allowedCategories = JSON.parse(readFileSync(categoriesPath, 'utf8'))
+const rawTags = JSON.parse(readFileSync(tagsPath, 'utf8'))
+const allowedTags = Array.isArray(rawTags)
+  ? rawTags.map((tag) => (typeof tag === 'string' ? tag : tag?.label))
+  : []
 
 if (
   !Array.isArray(allowedCategories) ||
-  allowedCategories.length === 0 ||
   allowedCategories.some((category) => typeof category !== 'string' || !category.trim())
 ) {
   console.error(`Invalid categories file: ${categoriesPath}`)
   process.exit(1)
 }
 
+if (
+  !Array.isArray(rawTags) ||
+  allowedTags.some((tag) => typeof tag !== 'string' || !tag.trim())
+) {
+  console.error(`Invalid tags file: ${tagsPath}`)
+  process.exit(1)
+}
+
 const defaultCategory = allowedCategories[0]
+const categoryByNormalizedValue = new Map(
+  allowedCategories.map((category) => [category.trim().toLowerCase(), category])
+)
+const tagByNormalizedValue = new Map(
+  allowedTags.map((tag) => [tag.trim().toLowerCase(), tag])
+)
+const isInteractive = Boolean(input.isTTY && output.isTTY)
+let promptInterface
 
 const args = process.argv.slice(2)
 const readArg = (name) => {
@@ -30,19 +52,122 @@ const readArg = (name) => {
   return index >= 0 ? args[index + 1] : undefined
 }
 
-const title = readArg('--title')
-const category = readArg('--category') || defaultCategory
-const providedSlug = readArg('--slug')?.trim()
+const printUsage = () => {
+  console.log('Usage:')
+  console.log('  npm run blog:new')
+  console.log('  npm run blog:new -- --title "글 제목" --category "카테고리" --tags "태그1,태그2"')
+  console.log('  npm run blog:new -- --title "글 제목" --category "카테고리" --slug my-post')
+}
 
-if (!title) {
-  console.error(`Usage: npm run new-post -- --title "글 제목" --category ${defaultCategory}`)
+const closePrompt = () => {
+  if (promptInterface) {
+    promptInterface.close()
+    promptInterface = undefined
+  }
+}
+
+const fail = (message, details = []) => {
+  closePrompt()
+  console.error(message)
+  details.forEach((detail) => console.error(detail))
   process.exit(1)
 }
 
+const ask = async (question) => {
+  promptInterface ??= createInterface({ input, output })
+  return (await promptInterface.question(question)).trim()
+}
+
+const printChoices = (title, choices, render = (choice) => choice) => {
+  console.log(title)
+  choices.forEach((choice, index) => {
+    console.log(`  ${index + 1}. ${render(choice)}`)
+  })
+}
+
+const readChoice = (value, choices, normalizedMap) => {
+  const trimmed = value.trim()
+  const choiceIndex = Number(trimmed)
+  if (Number.isInteger(choiceIndex) && choiceIndex >= 1 && choiceIndex <= choices.length) {
+    return choices[choiceIndex - 1]
+  }
+
+  return normalizedMap.get(trimmed.toLowerCase()) ?? trimmed
+}
+
+const providedTitle = readArg('--title')?.trim()
+const providedCategory = readArg('--category')?.trim()
+const providedSlug = readArg('--slug')?.trim()
+const providedTags = readArg('--tags')
+
+if (args.includes('--help') || args.includes('-h')) {
+  printUsage()
+  process.exit(0)
+}
+
+if (allowedCategories.length === 0) {
+  fail(`No categories configured: ${categoriesPath}`, [
+    'Add at least one category first, then run blog:new again.',
+  ])
+}
+
+const resolveTitle = async () => {
+  if (providedTitle) return providedTitle
+
+  if (!isInteractive) {
+    fail('Usage: npm run blog:new -- --title "글 제목" --category "카테고리" --tags "태그"')
+  }
+
+  const answer = await ask('Title: ')
+  if (!answer) fail('Title is required.')
+  return answer
+}
+
+const resolveCategory = async () => {
+  if (providedCategory) {
+    return readChoice(providedCategory, allowedCategories, categoryByNormalizedValue)
+  }
+
+  if (!isInteractive) return defaultCategory
+
+  console.log('')
+  printChoices('Categories', allowedCategories)
+  const answer = await ask(`Category [1. ${defaultCategory}]: `)
+  return answer ? readChoice(answer, allowedCategories, categoryByNormalizedValue) : defaultCategory
+}
+
+const parseTags = (value) => [
+  ...new Set(
+    value
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .map((tag) => readChoice(tag, allowedTags, tagByNormalizedValue))
+  ),
+]
+
+const resolveTags = async () => {
+  if (providedTags) return parseTags(providedTags)
+  if (!isInteractive || allowedTags.length === 0) return []
+
+  console.log('')
+  printChoices('Tags', allowedTags)
+  const answer = await ask('Tags, comma-separated names or numbers (optional): ')
+  return answer ? parseTags(answer) : []
+}
+
+const title = await resolveTitle()
+const category = await resolveCategory()
+const tags = await resolveTags()
+closePrompt()
+
 if (!allowedCategories.includes(category)) {
-  console.error(`Invalid category: ${category}`)
-  console.error(`Allowed categories: ${allowedCategories.join(', ')}`)
-  process.exit(1)
+  fail(`Invalid category: ${category}`, [`Allowed categories: ${allowedCategories.join(', ')}`])
+}
+
+const invalidTags = tags.filter((tag) => !allowedTags.includes(tag))
+if (invalidTags.length > 0) {
+  fail(`Invalid tag(s): ${invalidTags.join(', ')}`, [`Allowed tags: ${allowedTags.join(', ')}`])
 }
 
 const getToday = () => {
@@ -96,6 +221,10 @@ const markdownPath = mdxPath
 const imageDir = join(imageRoot, slug)
 const ogSvgPath = join(ogRoot, `${slug}.svg`)
 const ogPngPath = join(ogRoot, `${slug}.png`)
+const tagsFrontmatter =
+  tags.length > 0
+    ? `tags:\n${tags.map((tag) => `  - ${JSON.stringify(tag)}`).join('\n')}`
+    : 'tags: []'
 
 if (existsSync(mdPath) || existsSync(mdxPath)) {
   console.error(`Post already exists: ${existsSync(mdxPath) ? mdxPath : mdPath}`)
@@ -228,8 +357,7 @@ excerpt: 검색 결과와 목록에 표시할 한 문장 요약을 적습니다.
 category: ${JSON.stringify(category)}
 publishedAt: ${today}
 comments: false
-tags:
-  - ${JSON.stringify(category)}
+${tagsFrontmatter}
 ogImage: ${ogImagePath}
 ---
 
@@ -270,5 +398,5 @@ console.log(`Created OG image: ${ogImagePath}`)
 console.log('')
 console.log('Next steps:')
 console.log(`1. Put images into: public/images/posts/${slug}/`)
-console.log(`2. Or run: npm run add-image -- --slug ${slug} "/absolute/path/to/image.png"`)
+console.log(`2. Or run: npm run blog:image -- --slug ${slug} "/absolute/path/to/image.png"`)
 console.log(`3. Start writing in: src/content/posts/${slug}.mdx`)

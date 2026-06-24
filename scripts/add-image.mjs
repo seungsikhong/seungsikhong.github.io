@@ -24,7 +24,7 @@ const fileArgs = args.filter((arg, index) => {
 })
 
 if (!slug || fileArgs.length === 0) {
-  console.error('Usage: npm run add-image -- --slug my-post "/absolute/path/to/image.png"')
+  console.error('Usage: npm run blog:image -- --slug my-post "/absolute/path/to/image.png"')
   process.exit(1)
 }
 

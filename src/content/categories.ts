@@ -1,13 +1,15 @@
 import postCategories from '../config/post-categories.json'
 
-if (postCategories.length === 0) {
-  throw new Error('At least one post category is required.')
+if (
+  !Array.isArray(postCategories) ||
+  postCategories.some((category) => typeof category !== 'string' || !category.trim())
+) {
+  throw new Error('Invalid post category config.')
 }
 
-export const POST_CATEGORIES = [
-  postCategories[0],
-  ...postCategories.slice(1),
-] as [string, ...string[]]
+export const POST_CATEGORIES = postCategories
+  .map((category) => category.trim())
+  .filter(Boolean)
 
 export type PostCategory = (typeof POST_CATEGORIES)[number]
 

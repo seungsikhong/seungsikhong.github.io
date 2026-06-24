@@ -3,11 +3,19 @@ import SiteLayout from '../../layouts/SiteLayout.astro'
 import { getPublishedPosts } from '../../utils/content'
 import { formatDate } from '../../utils/date'
 import { getPostHref } from '../../utils/posts'
-import { getCategoryHref } from '../../utils/taxonomy'
+import {
+  buildCategoryItems,
+  buildTagItems,
+  getCategoryHref,
+  getTagHref,
+} from '../../utils/taxonomy'
 
 const posts = (await getPublishedPosts()).sort(
   (a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
 )
+const categoryItems = buildCategoryItems(posts)
+const tagItems = buildTagItems(posts)
+const hasFilters = categoryItems.length > 0 || tagItems.length > 0
 ---
 
 <SiteLayout title="글" description="개발 과정에서 남긴 기술 기록과 생각을 최신순으로 모았습니다.">
@@ -33,46 +41,255 @@ const posts = (await getPublishedPosts()).sort(
             </p>
           </div>
         ) : (
-          <div class="divide-y divide-border/70">
+          <>
             {
-              posts.map((post) => (
-                <article class="grid gap-4 rounded-[1.5rem] py-5 transition hover:bg-accent/35 hover:px-4 md:grid-cols-[minmax(0,1fr)_10rem] md:items-start">
-                  <div>
-                    <p>
-                      <a
-                        class="text-xs font-semibold uppercase tracking-[0.16em] text-primary transition hover:text-primary/80"
-                        href={getCategoryHref(post.data.category)}
-                      >
-                        {post.data.category}
-                      </a>
-                    </p>
-                    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-                      <a class="transition hover:text-primary" href={getPostHref(post)}>
-                        {post.data.title}
-                      </a>
-                    </h2>
-                    <p class="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
-                      {post.data.excerpt}
-                    </p>
-                  </div>
+              hasFilters && (
+                <div
+                  class="mb-6 rounded-[1.5rem] border border-border/70 bg-card/65 p-4 md:p-5"
+                  data-post-filters
+                >
+                  <div class="flex flex-col gap-5">
+                    {
+                      categoryItems.length > 0 && (
+                        <div>
+                          <p class="px-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            카테고리 필터
+                          </p>
+                          <div class="mt-3 flex flex-wrap gap-2">
+                            <button
+                              class="filter-chip"
+                              type="button"
+                              data-filter-type="category"
+                              data-filter-value=""
+                            >
+                              전체
+                            </button>
+                            {categoryItems.map((category) => (
+                              <button
+                                class="filter-chip"
+                                type="button"
+                                data-filter-type="category"
+                                data-filter-value={category.label}
+                              >
+                                {category.label}
+                                <span>{category.count}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    }
 
-                  <div class="flex items-center justify-between gap-2 text-sm text-muted-foreground md:flex-col md:items-end md:justify-start md:pt-1">
-                    <span>{formatDate(post.data.publishedAt)}</span>
-                    <span
-                      data-goatcounter-count={getPostHref(post)}
-                      data-goatcounter-render="views"
-                      data-goatcounter-fallback="—"
-                    >
-                      —
-                    </span>
-                    <span>{post.data.comments ? '댓글 허용' : '댓글 없음'}</span>
+                    {
+                      tagItems.length > 0 && (
+                        <div>
+                          <p class="px-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            태그 필터
+                          </p>
+                          <div class="mt-3 flex flex-wrap gap-2">
+                            <button
+                              class="filter-chip"
+                              type="button"
+                              data-filter-type="tag"
+                              data-filter-value=""
+                            >
+                              전체
+                            </button>
+                            {tagItems.map((tag) => (
+                              <button
+                                class="filter-chip"
+                                type="button"
+                                data-filter-type="tag"
+                                data-filter-value={tag.label}
+                              >
+                                {tag.label}
+                                <span>{tag.count}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    }
+
+                    <div class="flex flex-col gap-3 border-t border-border/70 pt-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+                      <p data-filter-summary>전체 {posts.length}개 글</p>
+                      <button
+                        class="text-left text-sm font-medium text-foreground underline-offset-4 transition hover:text-primary hover:underline"
+                        type="button"
+                        data-filter-clear
+                      >
+                        필터 초기화
+                      </button>
+                    </div>
                   </div>
-                </article>
-              ))
+                </div>
+              )
             }
-          </div>
+
+            <div class="divide-y divide-border/70" data-post-list>
+              {
+                posts.map((post) => (
+                  <article
+                    class="grid gap-4 rounded-[1.5rem] py-5 transition hover:bg-accent/35 hover:px-4 md:grid-cols-[minmax(0,1fr)_10rem] md:items-start"
+                    data-post-item
+                    data-category={post.data.category}
+                    data-tags={JSON.stringify(post.data.tags)}
+                  >
+                    <div>
+                      <p>
+                        <a
+                          class="text-xs font-semibold uppercase tracking-[0.16em] text-primary transition hover:text-primary/80"
+                          href={getCategoryHref(post.data.category)}
+                        >
+                          {post.data.category}
+                        </a>
+                      </p>
+                      <h2 class="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                        <a class="transition hover:text-primary" href={getPostHref(post)}>
+                          {post.data.title}
+                        </a>
+                      </h2>
+                      <p class="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
+                        {post.data.excerpt}
+                      </p>
+                      {
+                        post.data.tags.length > 0 && (
+                          <div class="mt-4 flex flex-wrap gap-2">
+                            {post.data.tags.map((tag) => (
+                              <a
+                                class="rounded-full border border-border/70 bg-muted/50 px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:border-primary/25 hover:bg-primary/10 hover:text-foreground"
+                                href={getTagHref(tag)}
+                              >
+                                #{tag}
+                              </a>
+                            ))}
+                          </div>
+                        )
+                      }
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 text-sm text-muted-foreground md:flex-col md:items-end md:justify-start md:pt-1">
+                      <span>{formatDate(post.data.publishedAt)}</span>
+                      <span
+                        data-goatcounter-count={getPostHref(post)}
+                        data-goatcounter-render="views"
+                        data-goatcounter-fallback="—"
+                      >
+                        —
+                      </span>
+                      <span>{post.data.comments ? '댓글 허용' : '댓글 없음'}</span>
+                    </div>
+                  </article>
+                ))
+              }
+            </div>
+
+            <div
+              class="mt-6 hidden border border-border/70 bg-card/50 px-6 py-12"
+              data-filter-empty
+            >
+              <h2 class="text-xl font-semibold tracking-tight text-foreground">
+                조건에 맞는 글이 없습니다.
+              </h2>
+              <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
+                필터를 초기화하거나 다른 조건을 선택해보세요.
+              </p>
+            </div>
+          </>
         )
       }
     </section>
   </div>
+
+  <script is:inline>
+    (() => {
+      const root = document.querySelector('[data-post-filters]')
+      if (!root) return
+
+      const items = Array.from(document.querySelectorAll('[data-post-item]'))
+      const empty = document.querySelector('[data-filter-empty]')
+      const summary = document.querySelector('[data-filter-summary]')
+      const clear = document.querySelector('[data-filter-clear]')
+      const buttons = Array.from(root.querySelectorAll('[data-filter-type]'))
+      const state = { category: '', tag: '' }
+      const validFilters = {
+        category: new Set(buttons
+          .filter((button) => button.dataset.filterType === 'category')
+          .map((button) => button.dataset.filterValue || '')),
+        tag: new Set(buttons
+          .filter((button) => button.dataset.filterType === 'tag')
+          .map((button) => button.dataset.filterValue || '')),
+      }
+
+      const parseTags = (item) => {
+        try {
+          return JSON.parse(item.dataset.tags || '[]')
+        } catch {
+          return []
+        }
+      }
+
+      const setButtonState = () => {
+        buttons.forEach((button) => {
+          const type = button.dataset.filterType
+          const value = button.dataset.filterValue || ''
+          const active = state[type] === value
+          button.setAttribute('aria-pressed', active ? 'true' : 'false')
+          button.classList.toggle('border-primary/30', active)
+          button.classList.toggle('bg-primary/10', active)
+          button.classList.toggle('text-foreground', active)
+          button.classList.toggle('border-border/70', !active)
+          button.classList.toggle('bg-card/60', !active)
+          button.classList.toggle('text-muted-foreground', !active)
+        })
+      }
+
+      const syncUrl = () => {
+        const params = new URLSearchParams(window.location.search)
+        state.category ? params.set('category', state.category) : params.delete('category')
+        state.tag ? params.set('tag', state.tag) : params.delete('tag')
+        const query = params.toString()
+        window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`)
+      }
+
+      const apply = ({ updateUrl = true } = {}) => {
+        let visible = 0
+
+        items.forEach((item) => {
+          const categoryMatches = !state.category || item.dataset.category === state.category
+          const tagMatches = !state.tag || parseTags(item).includes(state.tag)
+          const matches = categoryMatches && tagMatches
+          item.hidden = !matches
+          if (matches) visible += 1
+        })
+
+        if (empty) empty.classList.toggle('hidden', visible > 0)
+        if (summary) summary.textContent = `전체 ${items.length}개 중 ${visible}개 표시`
+        setButtonState()
+        if (updateUrl) syncUrl()
+      }
+
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const type = button.dataset.filterType
+          if (!type) return
+          state[type] = button.dataset.filterValue || ''
+          apply()
+        })
+      })
+
+      clear?.addEventListener('click', () => {
+        state.category = ''
+        state.tag = ''
+        apply()
+      })
+
+      const params = new URLSearchParams(window.location.search)
+      const initialCategory = params.get('category') || ''
+      const initialTag = params.get('tag') || ''
+      state.category = validFilters.category.has(initialCategory) ? initialCategory : ''
+      state.tag = validFilters.tag.has(initialTag) ? initialTag : ''
+      apply({ updateUrl: false })
+    })()
+  </script>
 </SiteLayout>

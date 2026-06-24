@@ -2,9 +2,24 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "blog:new-post",
+      "label": "blog:new",
       "type": "shell",
-      "command": "npm run new-post -- --title \"${input:postTitle}\" --category \"${input:postCategory}\"",
+      "command": "npm run blog:new -- --title \"${input:postTitle}\" --category \"${input:postCategory}\" --tags \"${input:postTags}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "blog:meta",
+      "type": "npm",
+      "script": "blog:meta",
+      "problemMatcher": []
+    },
+    {
+      "label": "blog:image",
+      "type": "shell",
+      "command": "npm run blog:image -- --slug \"${input:imagePostSlug}\" \"${input:imagePath}\"",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -33,7 +48,23 @@
       "id": "postCategory",
       "type": "promptString",
       "description": "Category",
-      "default": "AI"
+      "default": ""
+    },
+    {
+      "id": "postTags",
+      "type": "promptString",
+      "description": "Tags, comma-separated",
+      "default": ""
+    },
+    {
+      "id": "imagePostSlug",
+      "type": "promptString",
+      "description": "Post slug"
+    },
+    {
+      "id": "imagePath",
+      "type": "promptString",
+      "description": "Absolute image path"
     }
   ]
 }

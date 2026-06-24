@@ -1,7 +1,10 @@
 import type { CollectionEntry } from 'astro:content'
-import { buildCategoryItems } from '../utils/taxonomy'
+import { POST_CATEGORIES } from '../content/categories'
+import { POST_MENU_TAGS, POST_TAGS } from '../content/tags'
+import { buildCategoryItems, buildTagItems } from '../utils/taxonomy'
+import navigationSettings from './navigation.json'
 
-export type NavigationIcon = 'writing' | 'topic' | 'about'
+export type NavigationIcon = 'writing' | 'topic' | 'tag' | 'about'
 
 export type NavigationItem = {
   label: string
@@ -15,58 +18,90 @@ export type NavigationGroup = {
   items: NavigationItem[]
 }
 
-export type NavigationConfig = {
-  groups: NavigationGroup[]
-  topics: {
-    enabled: boolean
-    label: string
-    showCounts: boolean
-  }
+type LinkNavigationItem = {
+  type: 'link'
+  label: string
+  href: string
+  enabled?: boolean
+  icon?: NavigationIcon
+}
+
+type DynamicNavigationItem = {
+  type: 'categories' | 'tags'
+  source?: 'all' | 'menu'
+  enabled?: boolean
+  showCounts?: boolean
+  includeEmpty?: boolean
+  include?: string[]
+  icon?: NavigationIcon
+}
+
+type NavigationSection = {
+  label: string
+  items: Array<LinkNavigationItem | DynamicNavigationItem>
+}
+
+type NavigationConfig = {
+  sections: NavigationSection[]
 }
 
 type PostEntry = CollectionEntry<'posts'>
 
-export const navigationConfig = {
-  groups: [
-    {
-      label: '메뉴',
-      items: [
-        { label: '글', href: '/posts/', icon: 'writing' },
-        { label: '소개', href: '/about/', icon: 'about' },
-      ],
-    },
-  ],
-  topics: {
-    enabled: true,
-    label: '카테고리',
-    showCounts: true,
-  },
-} satisfies NavigationConfig
+export const navigationConfig = navigationSettings as NavigationConfig
 
-export function buildNavigationGroups(posts: PostEntry[]) {
-  const groups = navigationConfig.groups.map((group) => ({
-    ...group,
-    items: group.items.map((item) => ({ ...item })),
-  }))
-
-  if (!navigationConfig.topics.enabled) {
-    return groups
+function resolveDynamicInclude(item: DynamicNavigationItem) {
+  if (item.include) return item.include
+  if (item.type === 'tags') {
+    return item.source === 'all' ? POST_TAGS : POST_MENU_TAGS
   }
 
-  const categoryItems = buildCategoryItems(posts).map((item) => ({
-    label: item.label,
-    href: item.href,
-    description: navigationConfig.topics.showCounts ? `${item.count}` : undefined,
-    icon: 'topic' as const,
-  }))
+  return item.source === 'all' ? POST_CATEGORIES : undefined
+}
 
-  return categoryItems.length > 0
-    ? [
-        ...groups,
+function buildDynamicItems(item: DynamicNavigationItem, posts: PostEntry[]) {
+  const include = resolveDynamicInclude(item)
+  const taxonomyItems =
+    item.type === 'categories'
+      ? buildCategoryItems(posts, {
+          include,
+          includeEmpty: item.includeEmpty,
+        })
+      : buildTagItems(posts, {
+          include,
+          includeEmpty: item.includeEmpty,
+        })
+
+  return taxonomyItems.map((taxonomyItem) => ({
+    label: taxonomyItem.label,
+    href: taxonomyItem.href,
+    description: item.showCounts ? `${taxonomyItem.count}` : undefined,
+    icon: item.icon ?? (item.type === 'categories' ? 'topic' : 'tag'),
+  }))
+}
+
+function buildSectionItems(section: NavigationSection, posts: PostEntry[]) {
+  return section.items.flatMap((item) => {
+    if (item.enabled === false) return []
+
+    if (item.type === 'link') {
+      return [
         {
-          label: navigationConfig.topics.label,
-          items: categoryItems,
+          label: item.label,
+          href: item.href,
+          icon: item.icon,
         },
       ]
-    : groups
+    }
+
+    return buildDynamicItems(item, posts)
+  })
+}
+
+export function buildNavigationGroups(posts: PostEntry[]) {
+  return navigationConfig.sections
+    .map((section) => ({
+      label: section.label,
+      items: buildSectionItems(section, posts),
+    }))
+    .filter((section) => section.items.length > 0)
 }

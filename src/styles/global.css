@@ -430,6 +430,14 @@
     @apply bg-accent text-accent-foreground shadow-sm;
   }
 
+  .filter-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:border-primary/25 hover:bg-primary/10 hover:text-foreground;
+  }
+
+  .filter-chip span {
+    @apply rounded-full bg-muted px-1.5 py-0.5 text-[0.68rem] leading-none text-muted-foreground;
+  }
+
   .layout-scrim {
     @apply hidden;
   }

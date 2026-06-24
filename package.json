@@ -8,7 +8,11 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "blog:new": "node ./scripts/new-post.mjs",
+    "blog:meta": "node ./scripts/list-post-meta.mjs",
+    "blog:image": "node ./scripts/add-image.mjs",
     "new-post": "node ./scripts/new-post.mjs",
+    "list-post-meta": "node ./scripts/list-post-meta.mjs",
     "add-image": "node ./scripts/add-image.mjs",
     "astro": "astro"
   },

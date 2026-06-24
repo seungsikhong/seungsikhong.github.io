@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 import { siteMeta } from '../config/site'
 import { getPublishedPosts } from '../utils/content'
-import { buildCategoryItems } from '../utils/taxonomy'
+import { buildCategoryItems, buildTagItems } from '../utils/taxonomy'
 import { getPostHref } from '../utils/posts'
 
 const STATIC_PATHS = ['/', '/posts/', '/about/']
@@ -25,7 +25,9 @@ const formatSitemapDate = (date: Date) => date.toISOString().slice(0, 10)
 export const GET: APIRoute = async () => {
   const posts = await getPublishedPosts()
   const topics = buildCategoryItems(posts)
+  const tags = buildTagItems(posts)
   const latestPostByCategory = new Map<string, Date>()
+  const latestPostByTag = new Map<string, Date>()
 
   posts.forEach((post) => {
     const current = latestPostByCategory.get(post.data.category)
@@ -33,6 +35,13 @@ export const GET: APIRoute = async () => {
     if (!current || next.getTime() > current.getTime()) {
       latestPostByCategory.set(post.data.category, next)
     }
+
+    post.data.tags.forEach((tag) => {
+      const currentTag = latestPostByTag.get(tag)
+      if (!currentTag || next.getTime() > currentTag.getTime()) {
+        latestPostByTag.set(tag, next)
+      }
+    })
   })
 
   const urls: SitemapEntry[] = [
@@ -44,6 +53,10 @@ export const GET: APIRoute = async () => {
     ...topics.map((topic) => ({
       loc: new URL(topic.href, siteMeta.url).toString(),
       lastmod: latestPostByCategory.get(topic.label),
+    })),
+    ...tags.map((tag) => ({
+      loc: new URL(tag.href, siteMeta.url).toString(),
+      lastmod: latestPostByTag.get(tag.label),
     })),
   ]
 

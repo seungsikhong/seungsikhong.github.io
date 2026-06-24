@@ -1,6 +1,6 @@
 ---
 interface Props {
-  name: 'home' | 'writing' | 'topic' | 'about'
+  name: 'home' | 'writing' | 'topic' | 'tag' | 'about'
   class?: string
 }
 
@@ -44,6 +44,14 @@ const commonProps = {
       <path d="M3 10v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8" />
       <path d="M8 14h8" />
       <path d="M8 17h5" />
+    </svg>
+  )
+}
+{
+  name === 'tag' && (
+    <svg {...commonProps}>
+      <path d="M20.6 13.2 13.2 20.6a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 2.8 12V5a2 2 0 0 1 2-2h7a2 2 0 0 1 1.4.6l7.4 7.4a2 2 0 0 1 0 2.8z" />
+      <path d="M7.5 7.5h.01" />
     </svg>
   )
 }

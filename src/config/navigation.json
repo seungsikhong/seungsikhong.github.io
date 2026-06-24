@@ -1,0 +1,34 @@
+{
+  "sections": [
+    {
+      "label": "메뉴",
+      "items": [
+        { "type": "link", "label": "글", "href": "/posts/", "icon": "writing" },
+        { "type": "link", "label": "소개", "href": "/about/", "icon": "about" }
+      ]
+    },
+    {
+      "label": "주제",
+      "items": [
+        {
+          "type": "tags",
+          "source": "menu",
+          "showCounts": true,
+          "includeEmpty": true,
+          "icon": "tag"
+        }
+      ]
+    },
+    {
+      "label": "카테고리",
+      "items": [
+        {
+          "type": "categories",
+          "showCounts": true,
+          "includeEmpty": false,
+          "icon": "topic"
+        }
+      ]
+    }
+  ]
+}

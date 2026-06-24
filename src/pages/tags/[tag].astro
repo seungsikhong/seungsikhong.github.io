@@ -1,36 +1,37 @@
 ---
 import SiteLayout from '../../layouts/SiteLayout.astro'
-import { POST_CATEGORIES } from '../../content/categories'
+import { POST_TAGS } from '../../content/tags'
 import { getPublishedPosts } from '../../utils/content'
 import { formatDate } from '../../utils/date'
 import { getPostHref } from '../../utils/posts'
-import { buildCategoryItems, getCategorySlug } from '../../utils/taxonomy'
+import { buildTagItems, getTagSlug } from '../../utils/taxonomy'
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts()
-  const categories = buildCategoryItems(posts, { include: POST_CATEGORIES, includeEmpty: true })
+  const tags = buildTagItems(posts, { include: POST_TAGS, includeEmpty: true })
 
-  return categories.map((category) => ({
-    params: { category: getCategorySlug(category.label) },
-    props: { categoryName: category.label, count: category.count, posts },
+  return tags.map((tag) => ({
+    params: { tag: getTagSlug(tag.label) },
+    props: { tagName: tag.label, count: tag.count, posts },
   }))
 }
 
-const { categoryName, count, posts } = Astro.props
+const { tagName, count, posts } = Astro.props
 const filteredPosts = posts
-  .filter((post) => post.data.category === categoryName)
+  .filter((post) => post.data.tags.includes(tagName))
   .sort((a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime())
 ---
 
 <SiteLayout
-  title={categoryName}
-  description={`${categoryName} 카테고리에 쌓인 글 ${count}개를 모았습니다.`}
+  title={tagName}
+  description={`${tagName} 태그가 붙은 글 ${count}개를 모았습니다.`}
   robots={count > 0 ? 'index,follow,max-image-preview:large' : 'noindex,follow'}
 >
   <div class="mx-auto flex w-full max-w-5xl flex-col gap-8">
     <section class="border-b border-border/70 pb-8">
-      <h1 class="text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3.1rem]">
-        {categoryName}
+      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Tag</p>
+      <h1 class="mt-3 text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3.1rem]">
+        {tagName}
       </h1>
       <p class="mt-6 max-w-2xl text-[1.02rem] leading-8 text-muted-foreground">
         글 {count}개
@@ -45,7 +46,7 @@ const filteredPosts = posts
               아직 글이 없습니다.
             </h2>
             <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-              이 카테고리의 첫 기록이 곧 올라올 예정입니다.
+              이 주제의 첫 기록이 곧 올라올 예정입니다.
             </p>
           </div>
         ) : (
