@@ -30,11 +30,7 @@ const filteredPosts = posts
       <h1 class="text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3.1rem]">
         {categoryName}
       </h1>
-      <p
-        class="mt-6 max-w-2xl text-[1.02rem] leading-8 text-muted-foreground"
-        data-i18n-template="topic_count"
-        data-i18n-count={count}
-      >
+      <p class="mt-6 max-w-2xl text-[1.02rem] leading-8 text-muted-foreground">
         글 {count}개
       </p>
     </section>
@@ -67,9 +63,7 @@ const filteredPosts = posts
                 >
                   —
                 </span>
-                <span data-i18n={post.data.comments ? 'comment_on' : 'comment_off'}>
-                  {post.data.comments ? '댓글 허용' : '댓글 없음'}
-                </span>
+                <span>{post.data.comments ? '댓글 허용' : '댓글 없음'}</span>
               </div>
             </article>
           ))

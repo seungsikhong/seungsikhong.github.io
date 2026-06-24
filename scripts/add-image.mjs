@@ -1,6 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
 import { basename, dirname, extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { execFileSync } from 'node:child_process'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, '..')
@@ -64,6 +65,51 @@ const ensureUniqueName = (name) => {
   return candidate
 }
 
+const readImageSizeWithSharp = async (sourcePath) => {
+  try {
+    const { default: sharp } = await import('sharp')
+    const metadata = await sharp(sourcePath).metadata()
+    if (metadata.width && metadata.height) {
+      return { width: metadata.width, height: metadata.height }
+    }
+  } catch {}
+
+  return null
+}
+
+const readImageSizeWithSips = (sourcePath) => {
+  try {
+    const output = execFileSync('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', sourcePath], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+    const width = Number(output.match(/pixelWidth:\s*(\d+)/)?.[1])
+    const height = Number(output.match(/pixelHeight:\s*(\d+)/)?.[1])
+    if (Number.isFinite(width) && Number.isFinite(height)) {
+      return { width, height }
+    }
+  } catch {}
+
+  return null
+}
+
+const readImageSize = async (sourcePath) =>
+  (await readImageSizeWithSharp(sourcePath)) || readImageSizeWithSips(sourcePath)
+
+const buildPostImageSnippet = ({ src, width, height }) => {
+  const dimensionLines =
+    width && height
+      ? `\n  width={${width}}\n  height={${height}}`
+      : ''
+
+  return `<PostImage
+  src="${src}"
+  alt="이미지 설명"
+  caption="선택 캡션"
+  size="wide"${dimensionLines}
+/>`
+}
+
 const snippets = []
 
 for (const sourcePath of fileArgs) {
@@ -78,10 +124,17 @@ for (const sourcePath of fileArgs) {
   const targetPath = join(imageDir, fileName)
 
   copyFileSync(sourcePath, targetPath)
-  snippets.push(`![Add image description](/images/posts/${slug}/${fileName})`)
+  const dimensions = await readImageSize(targetPath)
+  snippets.push(
+    buildPostImageSnippet({
+      src: `/images/posts/${slug}/${fileName}`,
+      width: dimensions?.width,
+      height: dimensions?.height,
+    })
+  )
 }
 
 console.log(`Copied ${snippets.length} image(s) to: ${imageDir}`)
 console.log('')
-console.log('Markdown:')
+console.log('MDX:')
 console.log(snippets.join('\n\n'))

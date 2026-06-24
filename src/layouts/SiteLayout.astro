@@ -37,7 +37,7 @@ const {
 const posts = await getPublishedPosts()
 const navigationGroups = buildNavigationGroups(posts)
 const topicItems = buildCategoryItems(posts)
-const pageTitle = title === siteMeta.title ? title : `${title} | ${siteMeta.title}`
+const pageTitle = title === siteMeta.title ? title : `${title} | ${siteMeta.name}`
 const analyticsConfigured = hasAnalyticsProviderConfig()
 const analyticsCountEndpoint = getAnalyticsCountEndpoint()
 const analyticsBase = getAnalyticsSiteBase()
@@ -47,7 +47,8 @@ const rssUrl = new URL('/rss.xml', Astro.site ?? siteMeta.url).toString()
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: siteMeta.title,
+  name: siteMeta.name,
+  headline: siteMeta.title,
   url: siteMeta.url,
   description: siteMeta.description,
   author: {
@@ -71,7 +72,7 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
     <meta name="author" content={siteMeta.author} />
     <link rel="canonical" href={canonicalUrl} />
     <meta property="og:type" content={ogType} />
-    <meta property="og:site_name" content={siteMeta.title} />
+    <meta property="og:site_name" content={siteMeta.name} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
@@ -85,7 +86,8 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
     <meta name="format-detection" content="telephone=no" />
-    <link rel="alternate" type="application/rss+xml" title={`${siteMeta.title} RSS`} href={rssUrl} />
+    <link rel="alternate" type="application/rss+xml" title={`${siteMeta.name} RSS`} href={rssUrl} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#0b1020" />
     {
@@ -105,7 +107,12 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
     }
     <script is:inline>
       (() => {
-        const savedTheme = localStorage.getItem('site:theme') || 'system'
+        const validThemes = ['system', 'light', 'dark']
+        let savedTheme = 'system'
+        try {
+          savedTheme = localStorage.getItem('site:theme') || 'system'
+        } catch {}
+        if (!validThemes.includes(savedTheme)) savedTheme = 'system'
         const resolved =
           savedTheme === 'system'
             ? window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -115,11 +122,9 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
 
         document.documentElement.dataset.themePreference = savedTheme
         document.documentElement.dataset.theme = resolved
-        document.documentElement.dataset.locale = 'ko'
         document.documentElement.lang = 'ko'
         document.documentElement.classList.toggle('dark', resolved === 'dark')
         document.documentElement.style.colorScheme = resolved
-        window.__SITE_LOCALE__ = 'ko'
       })()
     </script>
   </head>
@@ -250,9 +255,22 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
         const closeTimers = { left: 0, right: 0 }
         let utilityTimer = 0
 
+        const getStoredValue = (key) => {
+          try {
+            return localStorage.getItem(key)
+          } catch {
+            return null
+          }
+        }
+        const setStoredValue = (key, value) => {
+          try {
+            localStorage.setItem(key, value)
+          } catch {}
+        }
+
         const state = {
-          leftPinned: localStorage.getItem(keys.leftPinned) === 'true',
-          rightPinned: localStorage.getItem(keys.rightPinned) === 'true',
+          leftPinned: getStoredValue(keys.leftPinned) === 'true',
+          rightPinned: getStoredValue(keys.rightPinned) === 'true',
           leftHover: false,
           rightHover: false,
           leftMobile: false,
@@ -337,11 +355,11 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
           if (side === 'left') {
             state.leftPinned = value
             if (value) state.leftHover = true
-            if (persist) localStorage.setItem(keys.leftPinned, value ? 'true' : 'false')
+            if (persist) setStoredValue(keys.leftPinned, value ? 'true' : 'false')
           } else if (side === 'right' && rightAvailable) {
             state.rightPinned = value
             if (value) state.rightHover = true
-            if (persist) localStorage.setItem(keys.rightPinned, value ? 'true' : 'false')
+            if (persist) setStoredValue(keys.rightPinned, value ? 'true' : 'false')
           }
 
           syncPanels()

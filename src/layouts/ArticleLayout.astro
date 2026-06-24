@@ -104,7 +104,7 @@ const breadcrumbSchema = {
       <header class="border-b border-border/70 pb-8">
         <div class="mb-6">
           <a href="/" class="article-home-link" aria-label="홈으로 이동">
-            <span data-i18n="nav_index">홈</span>
+            <span>홈</span>
           </a>
         </div>
 
@@ -125,14 +125,10 @@ const breadcrumbSchema = {
           </span>
           {
             updatedAt && (
-              <span data-i18n-template="article_updated" data-i18n-date={formatDate(updatedAt)}>
-                업데이트 {formatDate(updatedAt)}
-              </span>
+              <span>업데이트 {formatDate(updatedAt)}</span>
             )
           }
-          <span data-i18n={comments ? 'comments_enabled' : 'comments_disabled'}>
-            {comments ? '댓글 허용' : '댓글 비활성화'}
-          </span>
+          <span>{comments ? '댓글 허용' : '댓글 비활성화'}</span>
         </div>
 
         <h1 class="mt-5 text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3.35rem] md:leading-[1.05]">
@@ -162,17 +158,14 @@ const breadcrumbSchema = {
       enabledShareChannels.length > 0 && (
         <section class="mx-auto mt-14 w-full max-w-3xl border-t border-border/70 pt-8">
           <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <h2
-              class="text-[0.78rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
-              data-i18n="share_title"
-            >
+            <h2 class="text-[0.78rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               공유
             </h2>
             <div class="flex flex-wrap gap-2.5" data-share-root data-share-url={canonicalUrl} data-share-title={title}>
               {
                 enabledShareChannels.includes('copy') && (
                   <button class="share-button" type="button" data-share-copy>
-                    <span data-i18n="share_copy">링크 복사</span>
+                    <span>링크 복사</span>
                   </button>
                 )
               }
@@ -184,7 +177,7 @@ const breadcrumbSchema = {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <span data-i18n="share_x">X 공유</span>
+                    <span>X 공유</span>
                   </a>
                 )
               }
@@ -196,7 +189,7 @@ const breadcrumbSchema = {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <span data-i18n="share_linkedin">LinkedIn 공유</span>
+                    <span>LinkedIn 공유</span>
                   </a>
                 )
               }
@@ -208,7 +201,7 @@ const breadcrumbSchema = {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <span data-i18n="share_facebook">Facebook 공유</span>
+                    <span>Facebook 공유</span>
                   </a>
                 )
               }
@@ -218,7 +211,7 @@ const breadcrumbSchema = {
                     class="share-button"
                     href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${title}\n${canonicalUrl}`)}`}
                   >
-                    <span data-i18n="share_email">이메일로 공유</span>
+                    <span>이메일로 공유</span>
                   </a>
                 )
               }

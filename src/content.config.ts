@@ -1,7 +1,13 @@
-import { defineCollection, z } from 'astro:content'
-import { POST_CATEGORIES } from './categories'
+import { defineCollection } from 'astro:content'
+import { glob } from 'astro/loaders'
+import { z } from 'astro/zod'
+import { POST_CATEGORIES } from './content/categories'
 
 const posts = defineCollection({
+  loader: glob({
+    pattern: '**/[^_]*.{md,mdx}',
+    base: './src/content/posts',
+  }),
   schema: z.object({
     title: z.string(),
     excerpt: z.string(),

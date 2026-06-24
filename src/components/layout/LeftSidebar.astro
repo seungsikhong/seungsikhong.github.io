@@ -1,5 +1,5 @@
 ---
-import { FileText, FolderTree, House, Info } from 'lucide-react'
+import NavIcon from '../icons/NavIcon.astro'
 import type { NavigationGroup } from '../../config/navigation'
 
 interface SidebarStats {
@@ -24,11 +24,6 @@ function isActive(href: string) {
   return pathname === href || pathname.startsWith(href)
 }
 
-const iconMap = {
-  writing: FileText,
-  topic: FolderTree,
-  about: Info,
-} as const
 ---
 
 <nav class="flex h-full flex-col overflow-y-auto px-3 py-5" aria-label="Primary">
@@ -39,8 +34,8 @@ const iconMap = {
         class="inline-flex items-center gap-2.5 text-[0.92rem] font-semibold tracking-[0.14em] text-foreground transition hover:text-primary"
         aria-label="홈"
       >
-        <House className="size-4 text-muted-foreground" />
-        <span data-i18n="nav_index">홈</span>
+        <NavIcon name="home" class="size-4 text-muted-foreground" />
+        <span>홈</span>
       </a>
     </div>
 
@@ -48,17 +43,13 @@ const iconMap = {
       groups.map((group) => (
         <section class="space-y-3">
           {group.label && (
-            <p
-              class="px-3 text-[0.74rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
-              data-i18n={group.translationKey}
-            >
+            <p class="px-3 text-[0.74rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               {group.label}
             </p>
           )}
           <ul class="space-y-2">
             {group.items.map((item) => {
               const active = isActive(item.href)
-              const Icon = item.icon ? iconMap[item.icon] : null
               return (
                 <li>
                   <a
@@ -72,11 +63,13 @@ const iconMap = {
                     aria-current={active ? 'page' : undefined}
                   >
                     <span class="flex min-w-0 items-center gap-3">
-                      {Icon && <Icon className="size-4 shrink-0 text-muted-foreground transition group-hover:text-foreground" />}
-                      <span
-                        class="block text-sm font-medium leading-6 tracking-[0.01em]"
-                        data-i18n={item.translationKey}
-                      >
+                      {item.icon && (
+                        <NavIcon
+                          name={item.icon}
+                          class="size-4 shrink-0 text-muted-foreground transition group-hover:text-foreground"
+                        />
+                      )}
+                      <span class="block text-sm font-medium leading-6 tracking-[0.01em]">
                         {item.label}
                       </span>
                     </span>
@@ -98,18 +91,18 @@ const iconMap = {
   <div class="mt-auto border-t border-border/70 px-3 pt-5">
     <dl class="space-y-3">
       <div class="flex items-center justify-between gap-4 text-sm">
-        <dt class="text-muted-foreground" data-i18n="stats_posts">포스트</dt>
+        <dt class="text-muted-foreground">포스트</dt>
         <dd class="font-semibold text-foreground">{stats.posts}</dd>
       </div>
       <div class="flex items-center justify-between gap-4 text-sm">
-        <dt class="text-muted-foreground" data-i18n="stats_topics">카테고리</dt>
+        <dt class="text-muted-foreground">카테고리</dt>
         <dd class="font-semibold text-foreground">{stats.topics}</dd>
       </div>
       {
         stats.showVisits && (
           <>
             <div class="flex items-center justify-between gap-4 text-sm">
-              <dt class="text-muted-foreground" data-i18n="stats_today">오늘</dt>
+              <dt class="text-muted-foreground">오늘</dt>
               <dd
                 class="font-semibold text-foreground"
                 data-goatcounter-count="TOTAL"
@@ -121,7 +114,7 @@ const iconMap = {
               </dd>
             </div>
             <div class="flex items-center justify-between gap-4 text-sm">
-              <dt class="text-muted-foreground" data-i18n="stats_total">누적</dt>
+              <dt class="text-muted-foreground">누적</dt>
               <dd
                 class="font-semibold text-foreground"
                 data-goatcounter-count="TOTAL"

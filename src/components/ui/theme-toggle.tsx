@@ -12,6 +12,25 @@ const THEME_LABELS: Record<ThemePreference, string> = {
   dark: '다크',
 }
 
+function isThemePreference(value: string | null): value is ThemePreference {
+  return value === 'system' || value === 'light' || value === 'dark'
+}
+
+function getStoredTheme(): ThemePreference {
+  try {
+    const saved = localStorage.getItem('site:theme')
+    return isThemePreference(saved) ? saved : 'system'
+  } catch {
+    return 'system'
+  }
+}
+
+function storeTheme(preference: ThemePreference) {
+  try {
+    localStorage.setItem('site:theme', preference)
+  } catch {}
+}
+
 function resolveTheme(preference: ThemePreference) {
   if (preference !== 'system') return preference
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -27,7 +46,7 @@ function applyTheme(preference: ThemePreference, persist = true) {
   root.classList.toggle('dark', resolved === 'dark')
 
   if (persist) {
-    localStorage.setItem('site:theme', preference)
+    storeTheme(preference)
   }
 
   window.dispatchEvent(
@@ -41,7 +60,7 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<ThemePreference>('system')
 
   useEffect(() => {
-    const saved = (localStorage.getItem('site:theme') as ThemePreference | null) || 'system'
+    const saved = getStoredTheme()
     setTheme(saved)
     applyTheme(saved, false)
 

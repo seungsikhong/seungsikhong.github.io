@@ -13,13 +13,10 @@ const posts = (await getPublishedPosts()).sort(
 <SiteLayout title="글" description="개발 과정에서 남긴 기술 기록과 생각을 최신순으로 모았습니다.">
   <div class="mx-auto flex w-full max-w-5xl flex-col gap-8">
     <section class="border-b border-border/70 pb-8">
-      <h1
-        class="text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3.3rem]"
-        data-i18n="archive_title"
-      >
+      <h1 class="text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3.3rem]">
         글
       </h1>
-      <p class="mt-6 max-w-2xl text-[1.05rem] leading-8 text-muted-foreground" data-i18n="archive_description">
+      <p class="mt-6 max-w-2xl text-[1.05rem] leading-8 text-muted-foreground">
         개발 과정에서 남긴 기술 기록과 생각을 최신순으로 모았습니다.
       </p>
     </section>
@@ -28,10 +25,10 @@ const posts = (await getPublishedPosts()).sort(
       {
         posts.length === 0 ? (
           <div class="border border-border/70 bg-card/50 px-6 py-12">
-            <h2 class="text-xl font-semibold tracking-tight text-foreground" data-i18n="empty_posts_title">
+            <h2 class="text-xl font-semibold tracking-tight text-foreground">
               아직 글이 없습니다.
             </h2>
-            <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground" data-i18n="empty_posts_description">
+            <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
               첫 기록이 곧 올라올 예정입니다.
             </p>
           </div>
@@ -68,9 +65,7 @@ const posts = (await getPublishedPosts()).sort(
                     >
                       —
                     </span>
-                    <span data-i18n={post.data.comments ? 'comment_on' : 'comment_off'}>
-                      {post.data.comments ? '댓글 허용' : '댓글 없음'}
-                    </span>
+                    <span>{post.data.comments ? '댓글 허용' : '댓글 없음'}</span>
                   </div>
                 </article>
               ))
