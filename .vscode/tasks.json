@@ -17,6 +17,24 @@
       "problemMatcher": []
     },
     {
+      "label": "blog:category:add",
+      "type": "shell",
+      "command": "npm run blog:category:add -- --name \"${input:categoryName}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "blog:tag:add",
+      "type": "shell",
+      "command": "npm run blog:tag:add -- --name \"${input:tagName}\" --menu \"${input:tagMenu}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "blog:image",
       "type": "shell",
       "command": "npm run blog:image -- --slug \"${input:imagePostSlug}\" \"${input:imagePath}\"",
@@ -55,6 +73,26 @@
       "type": "promptString",
       "description": "Tags, comma-separated",
       "default": ""
+    },
+    {
+      "id": "categoryName",
+      "type": "promptString",
+      "description": "Category to add"
+    },
+    {
+      "id": "tagName",
+      "type": "promptString",
+      "description": "Tag to add"
+    },
+    {
+      "id": "tagMenu",
+      "type": "pickString",
+      "description": "Show this tag in the navigation menu?",
+      "options": [
+        "false",
+        "true"
+      ],
+      "default": "false"
     },
     {
       "id": "imagePostSlug",

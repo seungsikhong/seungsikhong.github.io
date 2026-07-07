@@ -91,7 +91,14 @@ printItems(
 console.log('New post example')
 if (!defaultCategory) {
   console.log('- Add at least one category before creating a post.')
+  console.log('- npm run blog:category:add -- --name "AI"')
 } else {
   const tagArg = defaultTags.length > 0 ? ` --tags "${defaultTags.join(',')}"` : ''
   console.log(`- npm run blog:new -- --title "글 제목" --category "${defaultCategory}"${tagArg}`)
 }
+
+console.log('')
+console.log('Meta setup examples')
+console.log('- npm run blog:category:add -- --name "AI"')
+console.log('- npm run blog:tag:add -- --name "인공신경망" --menu false')
+console.log('- npm run blog:tag:add -- --name "AI" --menu true')

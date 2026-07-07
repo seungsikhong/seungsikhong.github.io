@@ -10,6 +10,8 @@
     "preview": "astro preview",
     "blog:new": "node ./scripts/new-post.mjs",
     "blog:meta": "node ./scripts/list-post-meta.mjs",
+    "blog:category:add": "node ./scripts/add-post-meta.mjs category",
+    "blog:tag:add": "node ./scripts/add-post-meta.mjs tag",
     "blog:image": "node ./scripts/add-image.mjs",
     "new-post": "node ./scripts/new-post.mjs",
     "list-post-meta": "node ./scripts/list-post-meta.mjs",

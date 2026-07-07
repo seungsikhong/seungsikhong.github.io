@@ -22,11 +22,15 @@ npm run preview
 
 ```bash
 npm run blog:meta
+npm run blog:category:add -- --name "AI"
+npm run blog:tag:add -- --name "인공신경망" --menu false
 npm run blog:new
 npm run blog:image -- --slug my-post "/absolute/path/to/image.png"
 ```
 
 - `blog:meta`: 현재 등록된 카테고리, 태그, 메뉴 노출 상태를 조회합니다.
+- `blog:category:add`: 글에서 사용할 카테고리를 추가합니다.
+- `blog:tag:add`: 글에서 사용할 태그를 추가합니다. `--menu true`를 주면 사이드바 주제 메뉴에도 노출합니다.
 - `blog:new`: 새 글을 만듭니다. 옵션 없이 실행하면 대화형으로 제목, 카테고리, 태그를 물어봅니다.
 - `blog:image`: 글에 넣을 이미지를 복사하고 `PostImage` 블록을 출력합니다.
 
@@ -42,7 +46,15 @@ npm run blog:image -- --slug my-post "/absolute/path/to/image.png"
 
 ### 1. 카테고리 추가
 
-카테고리는 `src/config/post-categories.json`에서 관리합니다.
+카테고리는 명령으로 추가하는 것을 권장합니다.
+
+```bash
+npm run blog:category:add -- --name "AI"
+```
+
+VS Code에서는 `Cmd/Ctrl + Shift + P` → `Tasks: Run Task` → `blog:category:add`를 실행하고 카테고리 이름을 입력합니다.
+
+카테고리는 내부적으로 `src/config/post-categories.json`에서 관리합니다. 직접 수정해도 되지만, 중복이나 형식 실수를 줄이려면 명령을 쓰는 편이 낫습니다.
 
 처음 상태는 비어 있습니다.
 
@@ -50,11 +62,11 @@ npm run blog:image -- --slug my-post "/absolute/path/to/image.png"
 []
 ```
 
-예를 들어 `Notes` 카테고리를 쓰려면 아래처럼 추가합니다.
+예를 들어 `AI` 카테고리를 쓰면 아래처럼 저장됩니다.
 
 ```json
 [
-  "Notes"
+  "AI"
 ]
 ```
 
@@ -72,7 +84,18 @@ npm run blog:image -- --slug my-post "/absolute/path/to/image.png"
 
 ### 2. 태그 추가
 
-태그는 `src/config/post-tags.json`에서 관리합니다.
+태그도 명령으로 추가하는 것을 권장합니다.
+
+```bash
+npm run blog:tag:add -- --name "인공신경망" --menu false
+```
+
+VS Code에서는 `Tasks: Run Task` → `blog:tag:add`를 실행하고 태그 이름과 메뉴 노출 여부를 입력합니다.
+
+- `--menu false`: 글에는 쓸 수 있지만 사이드바 주제 메뉴에는 숨깁니다.
+- `--menu true`: 글에도 쓸 수 있고 사이드바 주제 메뉴에도 보여줍니다.
+
+태그는 내부적으로 `src/config/post-tags.json`에서 관리합니다.
 
 처음 상태는 비어 있습니다.
 
@@ -80,12 +103,13 @@ npm run blog:image -- --slug my-post "/absolute/path/to/image.png"
 []
 ```
 
-태그를 추가하려면 아래처럼 작성합니다.
+태그를 추가하면 아래처럼 저장됩니다.
 
 ```json
 [
   {
-    "label": "AI"
+    "label": "인공신경망",
+    "menu": false
   }
 ]
 ```
@@ -170,12 +194,12 @@ npm run blog:image -- --slug my-post "/absolute/path/to/image.png"
 
 `type: "categories"`는 글이 있는 카테고리를 자동으로 보여줍니다. 현재 설정은 `includeEmpty: false`라서 글이 없는 카테고리는 메뉴에 나오지 않습니다.
 
-예를 들어 `AI`를 글 태그로 쓰고 메뉴에도 보여주려면 `navigation.json`을 고치지 않고 `post-tags.json`에만 아래처럼 추가합니다.
+예를 들어 `인공신경망` 태그를 주제 메뉴에도 보여주려면 `navigation.json`을 고치지 않고 태그만 아래처럼 등록합니다.
 
 ```json
 [
   {
-    "label": "AI",
+    "label": "인공신경망",
     "menu": true
   }
 ]
@@ -185,13 +209,13 @@ npm run blog:image -- --slug my-post "/absolute/path/to/image.png"
 
 ```md
 ---
-category: Notes
+category: AI
 tags:
-  - AI
+  - 인공신경망
 ---
 ```
 
-단, 위 예시의 `Notes`도 `post-categories.json`에 먼저 등록되어 있어야 합니다.
+단, 위 예시의 `AI`도 카테고리로 먼저 등록되어 있어야 합니다.
 
 SEO 기준으로 빈 태그/카테고리 페이지는 `noindex,follow`가 적용됩니다. 글이 1개 이상 생기면 자동으로 `index,follow`가 됩니다.
 
@@ -341,11 +365,13 @@ ogImage: /og/posts/my-post.png
 
 1. `Cmd/Ctrl + Shift + P` → `Tasks: Run Task`
 2. `blog:meta` 실행
-3. 사용 가능한 카테고리와 태그 확인
-4. `blog:new` 실행
-5. 제목, 카테고리, 태그 입력
-6. 생성된 `src/content/posts/<slug>.mdx`에서 글 작성
-7. 이미지 파일을 추가할 때는 `blog:image` 실행
+3. 카테고리가 없으면 `blog:category:add` 실행
+4. 태그가 없거나 새 태그가 필요하면 `blog:tag:add` 실행
+5. 다시 `blog:meta`로 등록 상태 확인
+6. `blog:new` 실행
+7. 제목, 카테고리, 태그 입력
+8. 생성된 `src/content/posts/<slug>.mdx`에서 글 작성
+9. 이미지 파일을 추가할 때는 `blog:image` 실행
 
 ### 이미지 붙여넣기
 
@@ -371,9 +397,11 @@ ogImage: /og/posts/my-post.png
 - 메뉴는 `sections` 순서대로 화면에 표시됩니다.
 - 직접 링크는 `type: "link"`로 추가합니다.
 - 카테고리/태그 메뉴는 `type: "categories"`, `type: "tags"`로 추가합니다.
-- 특정 태그 메뉴를 노출하려면 `src/config/post-tags.json`에서 해당 태그에 `"menu": true`를 추가합니다.
-- 허용 카테고리는 `src/config/post-categories.json`에서 관리합니다.
-- 허용 태그는 `src/config/post-tags.json`에서 관리합니다.
+- 카테고리는 `npm run blog:category:add -- --name "이름"`으로 추가합니다.
+- 태그는 `npm run blog:tag:add -- --name "이름" --menu false`로 추가합니다.
+- 특정 태그 메뉴를 노출하려면 태그 추가 시 `--menu true`를 사용합니다.
+- 허용 카테고리는 내부적으로 `src/config/post-categories.json`에서 관리합니다.
+- 허용 태그는 내부적으로 `src/config/post-tags.json`에서 관리합니다.
 - 작성 전 조회는 `npm run blog:meta`로 합니다.
 - RSS는 `/rss.xml`, 사이트맵은 `/sitemap.xml`에서 생성됩니다.
 - 댓글은 `src/config/site.ts`의 Giscus 설정을 채우면 활성화됩니다.
