@@ -1,6 +1,8 @@
 name = "seungsikhong-view-counter"
 main = "src/index.js"
 compatibility_date = "2026-07-18"
+workers_dev = true
+preview_urls = false
 
 [vars]
 ALLOWED_ORIGINS = "https://seungsikhong.github.io,http://localhost:4321,http://127.0.0.1:4321"
@@ -10,5 +12,5 @@ ALLOWED_POST_PATHS = ""
 [[d1_databases]]
 binding = "DB"
 database_name = "seungsikhong_blog_views"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "08cab5ae-ac17-45ba-959a-c4aa1e81b4a4"
 migrations_dir = "migrations"
