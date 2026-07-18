@@ -78,7 +78,7 @@ PUBLIC_VIEW_COUNTER_ENDPOINT=https://<worker-name>.<account>.workers.dev
 npm run blog:category:add -- --name "AI"
 ```
 
-VS Code에서는 `Cmd/Ctrl + Shift + P` → `Tasks: Run Task` → `blog:category:add`를 실행하고 카테고리 이름을 입력합니다.
+VS Code에서는 `Cmd/Ctrl + Shift + P` -> `Tasks: Run Task` -> `Blog: 카테고리 추가`를 실행하고 카테고리 이름을 입력합니다.
 
 카테고리는 내부적으로 `src/config/post-categories.json`에서 관리합니다. 직접 수정해도 되지만, 중복이나 형식 실수를 줄이려면 명령을 쓰는 편이 낫습니다.
 
@@ -116,7 +116,7 @@ VS Code에서는 `Cmd/Ctrl + Shift + P` → `Tasks: Run Task` → `blog:category
 npm run blog:tag:add -- --name "인공신경망" --menu false
 ```
 
-VS Code에서는 `Tasks: Run Task` → `blog:tag:add`를 실행하고 태그 이름과 메뉴 노출 여부를 입력합니다.
+VS Code에서는 `Cmd/Ctrl + Shift + P` -> `Tasks: Run Task` -> `Blog: 태그 추가`를 실행하고 태그 이름과 메뉴 노출 여부를 입력합니다.
 
 - `--menu false`: 글에는 쓸 수 있지만 사이드바 주제 메뉴에는 숨깁니다.
 - `--menu true`: 글에도 쓸 수 있고 사이드바 주제 메뉴에도 보여줍니다.
@@ -387,17 +387,38 @@ ogImage: /og/posts/my-post.png
 - Markdown All in One
 - Paste Image
 
-### VS Code에서 쓰는 흐름
+### VS Code에서 새 글 만들기
 
-1. `Cmd/Ctrl + Shift + P` → `Tasks: Run Task`
-2. `blog:meta` 실행
-3. 카테고리가 없으면 `blog:category:add` 실행
-4. 태그가 없거나 새 태그가 필요하면 `blog:tag:add` 실행
-5. 다시 `blog:meta`로 등록 상태 확인
-6. `blog:new` 실행
-7. 제목, 카테고리, 태그 입력
-8. 생성된 `src/content/posts/<slug>.mdx`에서 글 작성
-9. 이미지 파일을 추가할 때는 `blog:image` 실행
+`Cmd/Ctrl + Shift + P`에서 `blog`를 바로 검색하면 나오지 않습니다. 블로그 명령은 VS Code의 일반 명령이 아니라 이 프로젝트의 `Task`로 등록되어 있기 때문입니다.
+
+항상 아래 순서로 실행합니다.
+
+1. `Cmd/Ctrl + Shift + P`
+2. `Tasks: Run Task` 입력 후 실행
+3. `Blog:` 입력
+4. 필요한 작업 선택
+
+자주 쓰는 작업은 아래와 같습니다.
+
+- `Blog: 카테고리/태그 조회`: 현재 사용할 수 있는 카테고리와 태그를 확인합니다.
+- `Blog: 카테고리 추가`: 새 카테고리를 추가합니다.
+- `Blog: 태그 추가`: 새 태그를 추가하고 메뉴 노출 여부를 정합니다.
+- `Blog: 새 글 만들기`: 제목, 카테고리, 태그를 입력해서 `.mdx` 글 파일을 생성합니다.
+- `Blog: 이미지 추가`: 글 이미지 폴더에 이미지를 복사하고 본문에 붙일 경로를 출력합니다.
+- `Blog: 개발 서버 실행`: 로컬 미리보기를 실행합니다.
+- `Blog: 빌드`: 배포 전 빌드를 확인합니다.
+
+새 글을 쓸 때 권장 순서는 아래입니다.
+
+1. `Blog: 카테고리/태그 조회`
+2. 카테고리가 없으면 `Blog: 카테고리 추가`
+3. 태그가 없거나 새 태그가 필요하면 `Blog: 태그 추가`
+4. 다시 `Blog: 카테고리/태그 조회`로 등록 상태 확인
+5. `Blog: 새 글 만들기`
+6. 생성된 `src/content/posts/<slug>.mdx`에서 글 작성
+7. 이미지 파일을 추가할 때는 `Blog: 이미지 추가`
+
+터미널에서 직접 실행하고 싶으면 같은 작업을 `npm run blog:*` 명령으로 실행합니다.
 
 ### 이미지 붙여넣기
 

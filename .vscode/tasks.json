@@ -2,7 +2,8 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "blog:new",
+      "label": "Blog: 새 글 만들기",
+      "detail": "npm run blog:new",
       "type": "shell",
       "command": "npm run blog:new -- --title \"${input:postTitle}\" --category \"${input:postCategory}\" --tags \"${input:postTags}\"",
       "options": {
@@ -11,13 +12,15 @@
       "problemMatcher": []
     },
     {
-      "label": "blog:meta",
+      "label": "Blog: 카테고리/태그 조회",
+      "detail": "npm run blog:meta",
       "type": "npm",
       "script": "blog:meta",
       "problemMatcher": []
     },
     {
-      "label": "blog:category:add",
+      "label": "Blog: 카테고리 추가",
+      "detail": "npm run blog:category:add",
       "type": "shell",
       "command": "npm run blog:category:add -- --name \"${input:categoryName}\"",
       "options": {
@@ -26,7 +29,8 @@
       "problemMatcher": []
     },
     {
-      "label": "blog:tag:add",
+      "label": "Blog: 태그 추가",
+      "detail": "npm run blog:tag:add",
       "type": "shell",
       "command": "npm run blog:tag:add -- --name \"${input:tagName}\" --menu \"${input:tagMenu}\"",
       "options": {
@@ -35,7 +39,8 @@
       "problemMatcher": []
     },
     {
-      "label": "blog:image",
+      "label": "Blog: 이미지 추가",
+      "detail": "npm run blog:image",
       "type": "shell",
       "command": "npm run blog:image -- --slug \"${input:imagePostSlug}\" \"${input:imagePath}\"",
       "options": {
@@ -44,13 +49,15 @@
       "problemMatcher": []
     },
     {
-      "label": "blog:dev",
+      "label": "Blog: 개발 서버 실행",
+      "detail": "npm run dev",
       "type": "npm",
       "script": "dev",
       "problemMatcher": []
     },
     {
-      "label": "blog:build",
+      "label": "Blog: 빌드",
+      "detail": "npm run build",
       "type": "npm",
       "script": "build",
       "problemMatcher": []
