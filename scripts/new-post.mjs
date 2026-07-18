@@ -1,4 +1,4 @@
-import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFileSync } from 'node:child_process'
@@ -12,8 +12,10 @@ const imageRoot = join(root, 'public', 'images', 'posts')
 const ogRoot = join(root, 'public', 'og', 'posts')
 const categoriesPath = join(root, 'src', 'config', 'post-categories.json')
 const tagsPath = join(root, 'src', 'config', 'post-tags.json')
+const collectionsPath = join(root, 'src', 'config', 'post-collections.json')
 let allowedCategories = JSON.parse(readFileSync(categoriesPath, 'utf8'))
 let rawTags = JSON.parse(readFileSync(tagsPath, 'utf8'))
+let rawCollections = JSON.parse(readFileSync(collectionsPath, 'utf8'))
 let allowedTags = Array.isArray(rawTags)
   ? rawTags.map((tag) => (typeof tag === 'string' ? tag : tag?.label))
   : []
@@ -34,6 +36,24 @@ if (
   process.exit(1)
 }
 
+if (
+  !Array.isArray(rawCollections) ||
+  rawCollections.some(
+    (collection) =>
+      !collection ||
+      typeof collection !== 'object' ||
+      typeof collection.id !== 'string' ||
+      typeof collection.label !== 'string' ||
+      typeof collection.category !== 'string' ||
+      !collection.id.trim() ||
+      !collection.label.trim() ||
+      !collection.category.trim()
+  )
+) {
+  console.error(`Invalid collections file: ${collectionsPath}`)
+  process.exit(1)
+}
+
 let defaultCategory = allowedCategories[0]
 let categoryByNormalizedValue
 let tagByNormalizedValue
@@ -42,6 +62,24 @@ let promptInterface
 
 const normalizeName = (value) => value.trim().replace(/\s+/g, ' ')
 const normalizeKey = (value) => normalizeName(value).toLowerCase()
+const slugify = (value) => {
+  const slug = value
+    .normalize('NFKD')
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+
+  return slug
+}
+const slugifyPath = (value) =>
+  value
+    .split('/')
+    .map((segment) => slugify(segment))
+    .filter(Boolean)
+    .join('/')
 
 const writeJson = (path, value) => {
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`)
@@ -67,14 +105,15 @@ const readArg = (name) => {
   const index = args.indexOf(name)
   return index >= 0 ? args[index + 1] : undefined
 }
+const hasArg = (name) => args.some((arg) => arg === name || arg.startsWith(`${name}=`))
 
 const printUsage = () => {
   console.log('Usage:')
   console.log('  npm run blog:new')
   console.log(
-    '  npm run blog:new -- --title "글 제목" --excerpt "글 요약" --category "카테고리" --tags "태그1,태그2"'
+    '  npm run blog:new -- --title "글 제목" --excerpt "글 요약" --category "카테고리" --collection "컬렉션" --tags "태그1,태그2"'
   )
-  console.log('  npm run blog:new -- --title "글 제목" --category "카테고리" --slug my-post')
+  console.log('  npm run blog:new -- --title "글 제목" --category "카테고리" --slug ai/01-my-post')
 }
 
 const closePrompt = () => {
@@ -110,14 +149,19 @@ const readChoice = (value, choices, normalizedMap) => {
     return choices[choiceIndex - 1]
   }
 
-  return normalizedMap.get(trimmed.toLowerCase()) ?? trimmed
+  return normalizedMap.get(normalizeKey(trimmed)) ?? trimmed
 }
 
 const providedTitle = readArg('--title')?.trim()
 const providedExcerpt = readArg('--excerpt')?.trim()
 const providedCategory = readArg('--category')?.trim()
+const providedCollection = readArg('--collection')?.trim()
+const providedCollectionOrder = readArg('--collection-order')?.trim()
 const providedSlug = readArg('--slug')?.trim()
 const providedTags = readArg('--tags')
+const hasProvidedExcerpt = hasArg('--excerpt')
+const hasProvidedCategory = hasArg('--category')
+const hasProvidedTags = hasArg('--tags')
 
 if (args.includes('--help') || args.includes('-h')) {
   printUsage()
@@ -141,6 +185,8 @@ const resolveCategory = async () => {
     return readChoice(providedCategory, allowedCategories, categoryByNormalizedValue)
   }
 
+  if (hasProvidedCategory && defaultCategory) return defaultCategory
+
   if (allowedCategories.length === 0 && isInteractive) {
     const answer = await ask('Category: ')
     if (!answer) fail('Category is required.')
@@ -159,7 +205,7 @@ const getDefaultExcerpt = (value) => `${value}에 대해 정리합니다.`
 
 const resolveExcerpt = async (value) => {
   const defaultExcerpt = getDefaultExcerpt(value)
-  if (providedExcerpt) return providedExcerpt
+  if (hasProvidedExcerpt) return providedExcerpt || defaultExcerpt
 
   if (!isInteractive) return defaultExcerpt
 
@@ -178,7 +224,7 @@ const parseTags = (value) => [
 ]
 
 const resolveTags = async () => {
-  if (providedTags) return parseTags(providedTags)
+  if (hasProvidedTags) return providedTags ? parseTags(providedTags) : []
   if (!isInteractive || allowedTags.length === 0) return []
 
   console.log('')
@@ -283,6 +329,56 @@ const addTag = (value) => {
   return name
 }
 
+const getCollectionsForCategory = (category) =>
+  rawCollections
+    .filter((collection) => collection.category === category)
+    .sort((a, b) => {
+      const aOrder = Number.isFinite(a.order) ? Number(a.order) : Number.MAX_SAFE_INTEGER
+      const bOrder = Number.isFinite(b.order) ? Number(b.order) : Number.MAX_SAFE_INTEGER
+      if (aOrder !== bOrder) return aOrder - bOrder
+      return a.label.localeCompare(b.label, 'en')
+    })
+
+const getUniqueCollectionId = (label, category) => {
+  const baseId = slugify(label) || `collection-${rawCollections.length + 1}`
+  const existingIds = new Set(rawCollections.map((collection) => normalizeKey(collection.id)))
+  if (!existingIds.has(normalizeKey(baseId))) return baseId
+
+  const categorySegment = slugify(category)
+  const prefixedId = categorySegment ? `${categorySegment}-${baseId}` : baseId
+  if (!existingIds.has(normalizeKey(prefixedId))) return prefixedId
+
+  let index = 2
+  let nextId = `${prefixedId}-${index}`
+  while (existingIds.has(normalizeKey(nextId))) {
+    index += 1
+    nextId = `${prefixedId}-${index}`
+  }
+
+  return nextId
+}
+
+const addCollection = (value, category) => {
+  const label = normalizeName(value)
+  const id = getUniqueCollectionId(label, category)
+  const categoryCollections = getCollectionsForCategory(category)
+  const nextOrder =
+    Math.max(0, ...categoryCollections.map((collection) => Number(collection.order) || 0)) + 1
+  const collection = {
+    id,
+    label,
+    category,
+    description: '',
+    order: nextOrder,
+  }
+
+  rawCollections.push(collection)
+  writeJson(collectionsPath, rawCollections)
+  refreshMetadataLookups()
+  console.log(`Added collection: ${label} (${id})`)
+  return collection
+}
+
 const resolveMetadataValue = async ({ type, value, choices, normalizedMap, addValue }) => {
   const name = normalizeName(value)
   const existing = normalizedMap.get(normalizeKey(name))
@@ -335,9 +431,80 @@ const resolveTagMetadata = async (values) => {
   return resolvedTags
 }
 
+const resolveCollection = async (category) => {
+  const categoryCollections = getCollectionsForCategory(category)
+  const emptyValues = new Set(['', 'none', 'no', 'n', '-'])
+  const categoryCollectionByNormalizedValue = new Map(
+    categoryCollections.flatMap((collection) => [
+      [normalizeKey(collection.id), collection],
+      [normalizeKey(collection.label), collection],
+    ])
+  )
+
+  if (providedCollection !== undefined) {
+    if (emptyValues.has(providedCollection.toLowerCase())) return undefined
+
+    const existing = categoryCollectionByNormalizedValue.get(normalizeKey(providedCollection))
+    if (existing) return existing
+
+    const similarChoices = findSimilarChoices(
+      providedCollection,
+      categoryCollections.flatMap((collection) => [collection.id, collection.label])
+    )
+    if (similarChoices.length > 0 && isInteractive) {
+      const resolved = await readSimilarChoice('collection', providedCollection, similarChoices, (value) =>
+        addCollection(value, category)
+      )
+      if (typeof resolved === 'string') {
+        return (
+          categoryCollectionByNormalizedValue.get(normalizeKey(resolved)) ??
+          addCollection(resolved, category)
+        )
+      }
+      return resolved
+    }
+
+    if (similarChoices.length > 0) {
+      fail(`Unknown collection: ${providedCollection}`, [
+        `Similar collections: ${similarChoices.join(', ')}`,
+        'Run this command in an interactive terminal to choose or add a new collection.',
+      ])
+    }
+
+    return addCollection(providedCollection, category)
+  }
+
+  if (!isInteractive || categoryCollections.length === 0) return undefined
+
+  console.log('')
+  console.log('Collections')
+  console.log('  0. No collection')
+  categoryCollections.forEach((collection, index) => {
+    console.log(`  ${index + 1}. ${collection.label}`)
+  })
+
+  const answer = await ask('Collection [0. No collection]: ')
+  if (!answer || emptyValues.has(answer.toLowerCase()) || answer === '0') return undefined
+
+  const choiceIndex = Number(answer)
+  if (
+    Number.isInteger(choiceIndex) &&
+    choiceIndex >= 1 &&
+    choiceIndex <= categoryCollections.length
+  ) {
+    return categoryCollections[choiceIndex - 1]
+  }
+
+  const existing = categoryCollectionByNormalizedValue.get(normalizeKey(answer))
+  if (existing) return existing
+
+  return addCollection(answer, category)
+}
+
 const title = await resolveTitle()
 const category = await resolveCategoryMetadata(await resolveCategory())
 const excerpt = await resolveExcerpt(title)
+const collection = await resolveCollection(category)
 const tags = await resolveTagMetadata(await resolveTags())
 closePrompt()
 
@@ -355,25 +522,57 @@ const getToday = () => {
 
 const today = getToday()
 
-const slugify = (value) => {
-  const slug = value
-    .normalize('NFKD')
-    .replace(/[^\w\s-]/g, '')
-    .trim()
-    .toLowerCase()
-    .replace(/[\s_]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-
-  return slug
-}
-
 const postExists = (slug) =>
   existsSync(join(postsDir, `${slug}.md`)) || existsSync(join(postsDir, `${slug}.mdx`))
 
+const readPostFiles = (dir = postsDir) => {
+  if (!existsSync(dir)) return []
+
+  return readdirSync(dir).flatMap((entry) => {
+    const path = join(dir, entry)
+    const stats = statSync(path)
+    if (stats.isDirectory()) return readPostFiles(path)
+    return /\.(md|mdx)$/i.test(path) ? [path] : []
+  })
+}
+
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const getNextCollectionOrder = (collectionId) => {
+  if (!collectionId) return undefined
+
+  const collectionPattern = new RegExp(`^collection:\\s*["']?${escapeRegExp(collectionId)}["']?\\s*$`, 'm')
+  const orderPattern = /^collectionOrder:\s*(\d+)\s*$/m
+  const orders = readPostFiles()
+    .map((path) => readFileSync(path, 'utf8'))
+    .filter((content) => collectionPattern.test(content))
+    .map((content) => Number(content.match(orderPattern)?.[1] ?? 0))
+    .filter((order) => Number.isInteger(order) && order > 0)
+
+  return Math.max(0, ...orders) + 1
+}
+
+const parseCollectionOrder = (value) => {
+  if (!value) return undefined
+  const order = Number(value)
+  if (!Number.isInteger(order) || order <= 0) {
+    fail(`Invalid collection order: ${value}`, ['Use a positive integer.'])
+  }
+
+  return order
+}
+
+const collectionOrder = collection
+  ? parseCollectionOrder(providedCollectionOrder) ?? getNextCollectionOrder(collection.id) ?? 1
+  : undefined
+
 const getAutoSlug = () => {
-  const base = slugify(title) || slugify(category) || 'post'
-  const initialSlug = `${today}-${base}`
+  const categorySegment = slugify(category) || 'posts'
+  const titleSegment = slugify(title) || 'post'
+  const base = collection
+    ? `${categorySegment}/${String(collectionOrder ?? 1).padStart(2, '0')}-${titleSegment}`
+    : `${categorySegment}/${titleSegment}`
+  const initialSlug = base
   let slug = initialSlug
   let index = 2
 
@@ -385,7 +584,7 @@ const getAutoSlug = () => {
   return slug
 }
 
-const slug = providedSlug ? slugify(providedSlug) || getAutoSlug() : getAutoSlug()
+const slug = providedSlug ? slugifyPath(providedSlug) || getAutoSlug() : getAutoSlug()
 const mdPath = join(postsDir, `${slug}.md`)
 const mdxPath = join(postsDir, `${slug}.mdx`)
 const markdownPath = mdxPath
@@ -396,15 +595,18 @@ const tagsFrontmatter =
   tags.length > 0
     ? `tags:\n${tags.map((tag) => `  - ${JSON.stringify(tag)}`).join('\n')}`
     : 'tags: []'
+const collectionFrontmatter = collection
+  ? `collection: ${JSON.stringify(collection.id)}\ncollectionOrder: ${collectionOrder}`
+  : ''
 
 if (existsSync(mdPath) || existsSync(mdxPath)) {
   console.error(`Post already exists: ${existsSync(mdxPath) ? mdxPath : mdPath}`)
   process.exit(1)
 }
 
-mkdirSync(postsDir, { recursive: true })
+mkdirSync(dirname(markdownPath), { recursive: true })
 mkdirSync(imageDir, { recursive: true })
-mkdirSync(ogRoot, { recursive: true })
+mkdirSync(dirname(ogSvgPath), { recursive: true })
 writeFileSync(join(imageDir, '.gitkeep'), '')
 
 const measure = (char) => (/[^ -~]/.test(char) ? 2 : 1)
@@ -527,7 +729,9 @@ title: ${JSON.stringify(title)}
 excerpt: ${JSON.stringify(excerpt)}
 category: ${JSON.stringify(category)}
 publishedAt: ${today}
+draft: true
 comments: false
+${collectionFrontmatter}
 ${tagsFrontmatter}
 ogImage: ${ogImagePath}
 ---

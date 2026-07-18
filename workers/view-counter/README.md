@@ -54,6 +54,10 @@ GitHub 저장소에서 `Settings` -> `Secrets and variables` -> `Actions` -> `Va
 - `ALLOWED_POST_PATHS`: 비워두면 `/posts/.../` 형식만 검증합니다. 쉼표로 path를 넣으면 해당 게시글만 허용합니다.
 - `VIEW_COUNTER_SALT`: Worker secret입니다. D1에 저장되는 방문자 해시 생성에 사용합니다.
 
+## 게시글 URL 변경
+
+조회수는 게시글 URL path를 key로 저장합니다. URL을 바꾸면 새 path 기준으로 조회수가 다시 집계되므로, 글을 공개한 뒤에는 slug를 가능한 유지합니다.
+
 ## 보안 메모
 
 이 API는 공개 조회수 카운터이므로 조작 가능성을 0으로 만들 수는 없습니다. 대신 origin 제한, path 검증, 1시간 중복 제한, raw IP 미저장으로 개인 블로그 수준의 현실적인 방어를 적용합니다.

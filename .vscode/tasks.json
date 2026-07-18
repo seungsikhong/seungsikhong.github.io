@@ -5,14 +5,14 @@
       "label": "Blog: 새 글 만들기",
       "detail": "npm run blog:new",
       "type": "shell",
-      "command": "npm run blog:new -- --title \"${input:postTitle}\" --excerpt \"${input:postExcerpt}\" --category \"${input:postCategory}\" --tags \"${input:postTags}\"",
+      "command": "npm run blog:new -- --title \"${input:postTitle}\" --excerpt \"${input:postExcerpt}\" --category \"${input:postCategory}\" --collection \"${input:postCollection}\" --collection-order \"${input:postCollectionOrder}\" --tags \"${input:postTags}\"",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": []
     },
     {
-      "label": "Blog: 카테고리/태그 조회",
+      "label": "Blog: 카테고리/태그/컬렉션 조회",
       "detail": "npm run blog:meta",
       "type": "npm",
       "script": "blog:meta",
@@ -33,6 +33,16 @@
       "detail": "npm run blog:tag:add",
       "type": "shell",
       "command": "npm run blog:tag:add -- --name \"${input:tagName}\" --menu \"${input:tagMenu}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Blog: 컬렉션 추가",
+      "detail": "npm run blog:collection:add",
+      "type": "shell",
+      "command": "npm run blog:collection:add -- --name \"${input:collectionName}\" --category \"${input:collectionCategory}\" --description \"${input:collectionDescription}\"",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -82,6 +92,18 @@
       "default": ""
     },
     {
+      "id": "postCollection",
+      "type": "promptString",
+      "description": "Collection id or name. Leave empty for Other Posts.",
+      "default": ""
+    },
+    {
+      "id": "postCollectionOrder",
+      "type": "promptString",
+      "description": "Collection order. Leave empty to use the next number.",
+      "default": ""
+    },
+    {
       "id": "postTags",
       "type": "promptString",
       "description": "Tags, comma-separated",
@@ -98,6 +120,23 @@
       "description": "Tag to add"
     },
     {
+      "id": "collectionName",
+      "type": "promptString",
+      "description": "Collection name"
+    },
+    {
+      "id": "collectionCategory",
+      "type": "promptString",
+      "description": "Collection category",
+      "default": ""
+    },
+    {
+      "id": "collectionDescription",
+      "type": "promptString",
+      "description": "Collection description",
+      "default": ""
+    },
+    {
       "id": "tagMenu",
       "type": "pickString",
       "description": "Show this tag in the navigation menu?",
@@ -110,7 +149,7 @@
     {
       "id": "imagePostSlug",
       "type": "promptString",
-      "description": "Post slug"
+      "description": "Post slug, for example ai/01-artificial-intelligence"
     },
     {
       "id": "imagePath",

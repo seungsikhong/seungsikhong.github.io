@@ -16,13 +16,14 @@ const posts = (await getPublishedPosts()).sort(
 const categoryItems = buildCategoryItems(posts)
 const tagItems = buildTagItems(posts)
 const hasFilters = categoryItems.length > 0 || tagItems.length > 0
+const formatPostCount = (value: number) => `${value} Post${value === 1 ? '' : 's'}`
 ---
 
-<SiteLayout title="글" description="개발 과정에서 남긴 기술 기록과 생각을 최신순으로 모았습니다.">
+<SiteLayout title="Posts" description="개발 과정에서 남긴 기술 기록과 생각을 최신순으로 모았습니다.">
   <div class="mx-auto flex w-full max-w-5xl flex-col gap-8">
     <section class="border-b border-border/70 pb-8">
       <h1 class="text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3.3rem]">
-        글
+        Posts
       </h1>
       <p class="mt-6 max-w-2xl text-[1.05rem] leading-8 text-muted-foreground">
         개발 과정에서 남긴 기술 기록과 생각을 최신순으로 모았습니다.
@@ -34,10 +35,10 @@ const hasFilters = categoryItems.length > 0 || tagItems.length > 0
         posts.length === 0 ? (
           <div class="border border-border/70 bg-card/50 px-6 py-12">
             <h2 class="text-xl font-semibold tracking-tight text-foreground">
-              아직 글이 없습니다.
+              No posts yet.
             </h2>
             <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-              첫 기록이 곧 올라올 예정입니다.
+              The first note will be published soon.
             </p>
           </div>
         ) : (
@@ -45,24 +46,24 @@ const hasFilters = categoryItems.length > 0 || tagItems.length > 0
             {
               hasFilters && (
                 <div
-                  class="mb-6 rounded-[1.5rem] border border-border/70 bg-card/65 p-4 md:p-5"
+                  class="mb-8 border-b border-border/70 pb-5"
                   data-post-filters
                 >
-                  <div class="flex flex-col gap-5">
+                  <div class="flex flex-col gap-3">
                     {
                       categoryItems.length > 0 && (
-                        <div>
-                          <p class="px-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            카테고리 필터
+                        <div class="flex flex-col gap-2 md:flex-row md:items-center">
+                          <p class="w-24 shrink-0 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            Category
                           </p>
-                          <div class="mt-3 flex flex-wrap gap-2">
+                          <div class="flex flex-wrap gap-2">
                             <button
                               class="filter-chip"
                               type="button"
                               data-filter-type="category"
                               data-filter-value=""
                             >
-                              전체
+                              All
                             </button>
                             {categoryItems.map((category) => (
                               <button
@@ -82,18 +83,18 @@ const hasFilters = categoryItems.length > 0 || tagItems.length > 0
 
                     {
                       tagItems.length > 0 && (
-                        <div>
-                          <p class="px-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            태그 필터
+                        <div class="flex flex-col gap-2 md:flex-row md:items-center">
+                          <p class="w-24 shrink-0 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            Tag
                           </p>
-                          <div class="mt-3 flex flex-wrap gap-2">
+                          <div class="flex flex-wrap gap-2">
                             <button
                               class="filter-chip"
                               type="button"
                               data-filter-type="tag"
                               data-filter-value=""
                             >
-                              전체
+                              All
                             </button>
                             {tagItems.map((tag) => (
                               <button
@@ -111,14 +112,14 @@ const hasFilters = categoryItems.length > 0 || tagItems.length > 0
                       )
                     }
 
-                    <div class="flex flex-col gap-3 border-t border-border/70 pt-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-                      <p data-filter-summary>전체 {posts.length}개 글</p>
+                    <div class="flex flex-col gap-3 pt-2 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+                      <p data-filter-summary>{formatPostCount(posts.length)}</p>
                       <button
                         class="text-left text-sm font-medium text-foreground underline-offset-4 transition hover:text-primary hover:underline"
                         type="button"
                         data-filter-clear
                       >
-                        필터 초기화
+                        Reset filters
                       </button>
                     </div>
                   </div>
@@ -176,7 +177,7 @@ const hasFilters = categoryItems.length > 0 || tagItems.length > 0
                       >
                         —
                       </span>
-                      <span>{post.data.comments ? '댓글 허용' : '댓글 없음'}</span>
+                      <span>{post.data.comments ? 'Comments on' : 'Comments off'}</span>
                     </div>
                   </article>
                 ))
@@ -188,10 +189,10 @@ const hasFilters = categoryItems.length > 0 || tagItems.length > 0
               data-filter-empty
             >
               <h2 class="text-xl font-semibold tracking-tight text-foreground">
-                조건에 맞는 글이 없습니다.
+                No matching posts.
               </h2>
               <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-                필터를 초기화하거나 다른 조건을 선택해보세요.
+                Reset the filters or choose a different condition.
               </p>
             </div>
           </>
@@ -263,7 +264,10 @@ const hasFilters = categoryItems.length > 0 || tagItems.length > 0
         })
 
         if (empty) empty.classList.toggle('hidden', visible > 0)
-        if (summary) summary.textContent = `전체 ${items.length}개 중 ${visible}개 표시`
+        if (summary) {
+          const noun = items.length === 1 ? 'post' : 'posts'
+          summary.textContent = `${visible} of ${items.length} ${noun} shown`
+        }
         setButtonState()
         if (updateUrl) syncUrl()
       }

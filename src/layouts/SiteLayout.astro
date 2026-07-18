@@ -140,12 +140,12 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
     data-utility-visible="true"
   >
     <div class="edge-trigger edge-trigger-left" data-left-trigger aria-hidden="true">
-      <span class="edge-trigger-label">메뉴</span>
+      <span class="edge-trigger-label">Menu</span>
     </div>
     {
       showRightRail && (
         <div class="edge-trigger edge-trigger-right" data-right-trigger aria-hidden="true">
-          <span class="edge-trigger-label">목차</span>
+          <span class="edge-trigger-label">Contents</span>
         </div>
       )
     }
@@ -156,8 +156,8 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
         type="button"
         data-toggle-left
       >
-        <span class="visually-hidden">좌측 메뉴 토글</span>
-        <span>메뉴</span>
+        <span class="visually-hidden">Toggle left menu</span>
+        <span>Menu</span>
       </button>
 
       {
@@ -167,8 +167,8 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
             type="button"
             data-toggle-right
           >
-            <span class="visually-hidden">우측 레일 토글</span>
-            <span>목차</span>
+            <span class="visually-hidden">Toggle contents rail</span>
+            <span>Contents</span>
           </button>
         )
       }
@@ -180,7 +180,7 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
         type="button"
         data-utility-hide
       >
-        <span>숨기기</span>
+        <span>Hide</span>
       </button>
     </div>
 
@@ -188,7 +188,7 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
       class="utility-peek"
       type="button"
       data-utility-peek
-      aria-label="상단 유틸리티 열기"
+      aria-label="Open utility controls"
     >
       UI
     </button>
@@ -204,7 +204,7 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
         </div>
         <div class="panel-control">
           <button class="panel-pin ml-auto" type="button" data-pin-left>
-            <span data-pin-left-label>자동</span>
+            <span data-pin-left-label>Auto</span>
           </button>
         </div>
       </aside>
@@ -223,7 +223,7 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
             </div>
             <div class="panel-control">
               <button class="panel-pin ml-auto" type="button" data-pin-right>
-                <span data-pin-right-label>자동</span>
+                <span data-pin-right-label>Auto</span>
               </button>
             </div>
           </aside>
@@ -231,7 +231,7 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
       }
     </div>
 
-    <button class="layout-scrim" type="button" aria-label="패널 닫기" data-close-panels></button>
+    <button class="layout-scrim" type="button" aria-label="Close panels" data-close-panels></button>
 
     <script is:inline>
       (() => {
@@ -311,10 +311,10 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
 
         const updatePinButtons = () => {
           document.querySelectorAll('[data-pin-left-label]').forEach((node) => {
-            node.textContent = state.leftPinned ? '고정됨' : '자동'
+            node.textContent = state.leftPinned ? 'Pinned' : 'Auto'
           })
           document.querySelectorAll('[data-pin-right-label]').forEach((node) => {
-            node.textContent = state.rightPinned ? '고정됨' : '자동'
+            node.textContent = state.rightPinned ? 'Pinned' : 'Auto'
           })
           if (leftPinButton instanceof HTMLButtonElement) {
             leftPinButton.setAttribute('aria-pressed', state.leftPinned ? 'true' : 'false')
@@ -551,8 +551,8 @@ const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd 
                 return
               }
 
-              const formatted = new Intl.NumberFormat('ko').format(count)
-              node.textContent = `조회 ${formatted}`
+              const formatted = new Intl.NumberFormat('en-US').format(count)
+              node.textContent = `Views ${formatted}`
             }
 
             const renderAll = () => {

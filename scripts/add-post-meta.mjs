@@ -8,6 +8,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, '..')
 const categoriesPath = join(root, 'src', 'config', 'post-categories.json')
 const tagsPath = join(root, 'src', 'config', 'post-tags.json')
+const collectionsPath = join(root, 'src', 'config', 'post-collections.json')
 const isInteractive = Boolean(input.isTTY && output.isTTY)
 let promptInterface
 
@@ -17,6 +18,8 @@ const typeAliases = new Map([
   ['categories', 'category'],
   ['tag', 'tag'],
   ['tags', 'tag'],
+  ['collection', 'collection'],
+  ['collections', 'collection'],
 ])
 
 const readArg = (name) => {
@@ -33,7 +36,14 @@ const readArg = (name) => {
 const getPositionalArgs = () => {
   const positional = []
   const rawType = readArg('--type') ?? (args[0]?.startsWith('-') ? undefined : args[0])
-  const optionsWithValue = new Set(['--name', '--menu', '--type'])
+  const optionsWithValue = new Set([
+    '--name',
+    '--menu',
+    '--type',
+    '--category',
+    '--description',
+    '--order',
+  ])
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index]
@@ -61,6 +71,7 @@ const printUsage = () => {
   console.log('  npm run blog:tag:add')
   console.log('  npm run blog:tag:add -- --name "인공신경망" --menu false')
   console.log('  npm run blog:tag:add -- --name "AI" --menu true')
+  console.log('  npm run blog:collection:add -- --name "AI Basics" --category "AI"')
 }
 
 const closePrompt = () => {
@@ -96,6 +107,46 @@ const writeJson = (path, value) => {
 
 const normalizeName = (value) => value.trim().replace(/\s+/g, ' ')
 const normalizeKey = (value) => normalizeName(value).toLowerCase()
+const slugify = (value) =>
+  value
+    .normalize('NFKD')
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+
+const getUniqueCollectionId = (name, category, collections) => {
+  const baseId = slugify(name)
+  if (!baseId) fail(`Invalid collection name: ${name}`)
+
+  const existingIds = new Set(
+    collections.map((collection) => normalizeKey(normalizeCollectionConfig(collection).id))
+  )
+  if (!existingIds.has(normalizeKey(baseId))) return baseId
+
+  const existingInSameCategory = collections
+    .map(normalizeCollectionConfig)
+    .find(
+      (collection) =>
+        normalizeKey(collection.id) === normalizeKey(baseId) && collection.category === category
+    )
+  if (existingInSameCategory) return baseId
+
+  const categorySegment = slugify(category)
+  const prefixedId = categorySegment ? `${categorySegment}-${baseId}` : baseId
+  if (!existingIds.has(normalizeKey(prefixedId))) return prefixedId
+
+  let index = 2
+  let nextId = `${prefixedId}-${index}`
+  while (existingIds.has(normalizeKey(nextId))) {
+    index += 1
+    nextId = `${prefixedId}-${index}`
+  }
+
+  return nextId
+}
 
 const parseBoolean = (value, fallback = false) => {
   if (value === undefined) return fallback
@@ -120,6 +171,21 @@ const normalizeTagConfig = (tag) => {
   return { label: '', menu: undefined }
 }
 
+const normalizeCollectionConfig = (collection) => {
+  if (collection && typeof collection === 'object') {
+    return {
+      id: normalizeName(String(collection.id ?? '')),
+      label: normalizeName(String(collection.label ?? '')),
+      category: normalizeName(String(collection.category ?? '')),
+      description:
+        collection.description === undefined ? '' : normalizeName(String(collection.description)),
+      order: Number.isInteger(Number(collection.order)) ? Number(collection.order) : undefined,
+    }
+  }
+
+  return { id: '', label: '', category: '', description: '', order: undefined }
+}
+
 const ensureValidCategories = (categories) => {
   if (
     !Array.isArray(categories) ||
@@ -132,6 +198,18 @@ const ensureValidCategories = (categories) => {
 const ensureValidTags = (tags) => {
   if (!Array.isArray(tags) || tags.some((tag) => !normalizeTagConfig(tag).label)) {
     fail(`Invalid tags file: ${tagsPath}`)
+  }
+}
+
+const ensureValidCollections = (collections) => {
+  if (
+    !Array.isArray(collections) ||
+    collections.some((collection) => {
+      const normalized = normalizeCollectionConfig(collection)
+      return !normalized.id || !normalized.label || !normalized.category
+    })
+  ) {
+    fail(`Invalid collections file: ${collectionsPath}`)
   }
 }
 
@@ -156,7 +234,8 @@ const resolveName = async (type) => {
     fail(`Name is required.`, [`Use: npm run blog:${type}:add -- --name "Name"`])
   }
 
-  const answer = await ask(`${type === 'category' ? 'Category' : 'Tag'} name: `)
+  const typeLabel = type === 'category' ? 'Category' : type === 'collection' ? 'Collection' : 'Tag'
+  const answer = await ask(`${typeLabel} name: `)
   if (!answer) fail('Name is required.')
   return normalizeName(answer)
 }
@@ -169,6 +248,52 @@ const resolveMenu = async () => {
 
   const answer = await ask('Show this tag in the navigation menu? [y/N]: ')
   return answer ? parseBoolean(answer) : false
+}
+
+const resolveCategoryName = async (categories) => {
+  const providedCategory = readArg('--category')
+  if (providedCategory) return normalizeName(providedCategory)
+
+  if (!isInteractive) {
+    fail('Category is required.', ['Use: npm run blog:collection:add -- --name "Name" --category "AI"'])
+  }
+
+  console.log('Categories')
+  categories.forEach((category, index) => console.log(`  ${index + 1}. ${category}`))
+  const answer = await ask(`Category [1. ${categories[0]}]: `)
+  const choiceIndex = Number(answer)
+  if (Number.isInteger(choiceIndex) && choiceIndex >= 1 && choiceIndex <= categories.length) {
+    return categories[choiceIndex - 1]
+  }
+
+  return answer ? normalizeName(answer) : categories[0]
+}
+
+const resolveDescription = async () => {
+  const providedDescription = readArg('--description')
+  if (providedDescription !== undefined) return normalizeName(providedDescription)
+  if (!isInteractive) return ''
+
+  return normalizeName(await ask('Description (optional): '))
+}
+
+const resolveOrder = (collections, category) => {
+  const providedOrder = readArg('--order')
+  if (providedOrder !== undefined) {
+    const order = Number(providedOrder)
+    if (!Number.isInteger(order) || order <= 0) fail(`Invalid order: ${providedOrder}`)
+    return order
+  }
+
+  return (
+    Math.max(
+      0,
+      ...collections
+        .map(normalizeCollectionConfig)
+        .filter((collection) => collection.category === category)
+        .map((collection) => collection.order ?? 0)
+    ) + 1
+  )
 }
 
 const addCategory = async () => {
@@ -212,6 +337,43 @@ const addTag = async () => {
   console.log(`Added tag: ${name} (menu=${menu})`)
 }
 
+const addCollection = async () => {
+  const categories = readJson(categoriesPath)
+  const collections = readJson(collectionsPath)
+  ensureValidCategories(categories)
+  ensureValidCollections(collections)
+
+  const name = await resolveName('collection')
+  if (!name) fail('Collection name is required.')
+
+  const category = await resolveCategoryName(categories)
+  if (!categories.includes(category)) {
+    fail(`Invalid category: ${category}`, [`Allowed categories: ${categories.join(', ')}`])
+  }
+
+  const id = getUniqueCollectionId(name, category, collections)
+
+  const description = await resolveDescription()
+  const order = resolveOrder(collections, category)
+  const existingIndex = collections.findIndex((collection) => {
+    const normalized = normalizeCollectionConfig(collection)
+    return normalizeKey(normalized.id) === normalizeKey(id)
+  })
+
+  const nextCollection = { id, label: name, category, description, order }
+
+  if (existingIndex >= 0) {
+    collections[existingIndex] = nextCollection
+    writeJson(collectionsPath, collections)
+    console.log(`Updated collection: ${name} (${id})`)
+    return
+  }
+
+  collections.push(nextCollection)
+  writeJson(collectionsPath, collections)
+  console.log(`Added collection: ${name} (${id})`)
+}
+
 if (args.includes('--help') || args.includes('-h')) {
   printUsage()
   process.exit(0)
@@ -221,8 +383,10 @@ const type = resolveType()
 
 if (type === 'category') {
   await addCategory()
-} else {
+} else if (type === 'tag') {
   await addTag()
+} else {
+  await addCollection()
 }
 
 closePrompt()

@@ -15,8 +15,8 @@ const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 
 
 <div class="flex h-full flex-col overflow-y-auto px-4 py-4" data-right-rail>
   <section class="rounded-[1rem] border border-border/70 bg-transparent p-4">
-    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary">읽기</p>
-    <h2 class="mt-2 text-lg font-semibold tracking-tight text-foreground">진행률</h2>
+    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary">Reading</p>
+    <h2 class="mt-2 text-lg font-semibold tracking-tight text-foreground">Progress</h2>
     <div class="mt-4 h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">
       <div
         class="h-full origin-left rounded-full bg-primary transition-transform duration-200"
@@ -26,13 +26,13 @@ const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 
     </div>
     <div class="mt-3 flex items-center justify-between text-xs text-muted-foreground">
       <span data-reading-progress-label>0%</span>
-      <span data-reading-progress-state>시작 전</span>
+      <span data-reading-progress-state>Not started</span>
     </div>
   </section>
 
   <section class="mt-4 rounded-[1rem] border border-border/70 bg-transparent p-4">
-    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary">구성</p>
-    <h2 class="mt-2 text-lg font-semibold tracking-tight text-foreground">목차</h2>
+    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary">Structure</p>
+    <h2 class="mt-2 text-lg font-semibold tracking-tight text-foreground">Contents</h2>
     {
       toc.length > 0 ? (
         <ol class="mt-4 space-y-1.5">
@@ -50,7 +50,7 @@ const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 
         </ol>
       ) : (
         <p class="mt-4 rounded-2xl border border-dashed border-border/70 bg-muted/60 px-4 py-4 text-sm leading-6 text-muted-foreground">
-          표시할 목차가 아직 없습니다.
+          No headings to show yet.
         </p>
       )
     }
@@ -83,11 +83,11 @@ const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 
 
       if (progressState) {
         if (percent <= 5) {
-          progressState.textContent = '시작 전'
+          progressState.textContent = 'Not started'
         } else if (percent >= 95) {
-          progressState.textContent = '마무리 중'
+          progressState.textContent = 'Finishing'
         } else {
-          progressState.textContent = '읽는 중'
+          progressState.textContent = 'Reading'
         }
       }
     }

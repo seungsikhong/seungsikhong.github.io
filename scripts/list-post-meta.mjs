@@ -9,6 +9,7 @@ const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'))
 
 const categories = readJson('src/config/post-categories.json')
 const rawTags = readJson('src/config/post-tags.json')
+const rawCollections = readJson('src/config/post-collections.json')
 const navigation = readJson('src/config/navigation.json')
 
 const tags = rawTags.map((tag) =>
@@ -50,6 +51,14 @@ const generatedItems = navigation.sections.flatMap((section) =>
 const menuTags = tags.filter((tag) => tag.menu)
 const defaultCategory = categories[0]
 const defaultTags = menuTags.map((tag) => tag.label)
+const collections = Array.isArray(rawCollections)
+  ? rawCollections.map((collection) => ({
+      id: collection.id,
+      label: collection.label,
+      category: collection.category,
+      order: collection.order,
+    }))
+  : []
 
 console.log('Blog writing settings')
 console.log('')
@@ -88,13 +97,25 @@ printItems(
   (tag) => `- ${tag.label}${tag.menu ? ' (menu)' : ''}`
 )
 
+printItems(
+  'Collections',
+  collections,
+  'no collections configured',
+  (collection) =>
+    `- ${collection.category}: ${collection.label} (${collection.id})${collection.order ? ` order=${collection.order}` : ''}`
+)
+
 console.log('New post example')
 if (!defaultCategory) {
   console.log('- Add at least one category before creating a post.')
   console.log('- npm run blog:category:add -- --name "AI"')
 } else {
+  const defaultCollection = collections.find((collection) => collection.category === defaultCategory)
   const tagArg = defaultTags.length > 0 ? ` --tags "${defaultTags.join(',')}"` : ''
-  console.log(`- npm run blog:new -- --title "글 제목" --category "${defaultCategory}"${tagArg}`)
+  const collectionArg = defaultCollection ? ` --collection "${defaultCollection.id}"` : ''
+  console.log(
+    `- npm run blog:new -- --title "글 제목" --category "${defaultCategory}"${collectionArg}${tagArg}`
+  )
 }
 
 console.log('')
@@ -102,3 +123,4 @@ console.log('Meta setup examples')
 console.log('- npm run blog:category:add -- --name "AI"')
 console.log('- npm run blog:tag:add -- --name "인공신경망" --menu false')
 console.log('- npm run blog:tag:add -- --name "AI" --menu true')
+console.log('- npm run blog:collection:add -- --name "AI Basics" --category "AI"')

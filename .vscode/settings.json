@@ -5,7 +5,7 @@
   "pasteImage.prefix": "/",
   "pasteImage.defaultName": "${currentFileNameWithoutExt}-YYYYMMDD-HHmmss",
   "pasteImage.showFilePathConfirmInputBox": true,
-  "pasteImage.filePathConfirmInputBoxMode": "onlyName",
+  "pasteImage.filePathConfirmInputBoxMode": "fullPath",
   "pasteImage.insertPattern": "<PostImage\n  src=\"${imageFilePath}\"\n  alt=\"${imageFileNameWithoutExt}\"\n  caption=\"${imageFileNameWithoutExt}\"\n  size=\"wide\"\n/>",
   "files.associations": {
     "*.mdx": "mdx"

@@ -16,7 +16,16 @@ const readArg = (name) => {
   return index >= 0 ? args[index + 1] : undefined
 }
 
-const slug = readArg('--slug')
+const normalizeSlug = (value = '') =>
+  value
+    .trim()
+    .replace(/^\/+|\/+$/g, '')
+    .split('/')
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .join('/')
+
+const slug = normalizeSlug(readArg('--slug'))
 const fileArgs = args.filter((arg, index) => {
   if (arg === '--slug') return false
   if (index > 0 && args[index - 1] === '--slug') return false
@@ -24,7 +33,12 @@ const fileArgs = args.filter((arg, index) => {
 })
 
 if (!slug || fileArgs.length === 0) {
-  console.error('Usage: npm run blog:image -- --slug my-post "/absolute/path/to/image.png"')
+  console.error('Usage: npm run blog:image -- --slug ai/01-my-post "/absolute/path/to/image.png"')
+  process.exit(1)
+}
+
+if (slug.includes('\\') || slug.split('/').some((segment) => segment === '.' || segment === '..')) {
+  console.error(`Invalid post slug: ${slug}`)
   process.exit(1)
 }
 

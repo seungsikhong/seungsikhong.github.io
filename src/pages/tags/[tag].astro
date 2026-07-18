@@ -20,11 +20,12 @@ const { tagName, count, posts } = Astro.props
 const filteredPosts = posts
   .filter((post) => post.data.tags.includes(tagName))
   .sort((a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime())
+const formatPostCount = (value: number) => `${value} Post${value === 1 ? '' : 's'}`
 ---
 
 <SiteLayout
   title={tagName}
-  description={`${tagName} 태그가 붙은 글 ${count}개를 모았습니다.`}
+  description={`${formatPostCount(count)} tagged with ${tagName}.`}
   robots={count > 0 ? 'index,follow,max-image-preview:large' : 'noindex,follow'}
 >
   <div class="mx-auto flex w-full max-w-5xl flex-col gap-8">
@@ -34,7 +35,7 @@ const filteredPosts = posts
         {tagName}
       </h1>
       <p class="mt-6 max-w-2xl text-[1.02rem] leading-8 text-muted-foreground">
-        글 {count}개
+        {formatPostCount(count)}
       </p>
     </section>
 
@@ -43,10 +44,10 @@ const filteredPosts = posts
         filteredPosts.length === 0 ? (
           <div class="border border-border/70 bg-card/50 px-6 py-12">
             <h2 class="text-xl font-semibold tracking-tight text-foreground">
-              아직 글이 없습니다.
+              No posts yet.
             </h2>
             <p class="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-              이 주제의 첫 기록이 곧 올라올 예정입니다.
+              The first note for this tag will be published soon.
             </p>
           </div>
         ) : (
@@ -76,7 +77,7 @@ const filteredPosts = posts
                     >
                       —
                     </span>
-                    <span>{post.data.comments ? '댓글 허용' : '댓글 없음'}</span>
+                    <span>{post.data.comments ? 'Comments on' : 'Comments off'}</span>
                   </div>
                 </article>
               ))

@@ -1,14 +1,14 @@
 {
   "sections": [
     {
-      "label": "메뉴",
+      "label": "Menu",
       "items": [
-        { "type": "link", "label": "글", "href": "/posts/", "icon": "writing" },
-        { "type": "link", "label": "소개", "href": "/about/", "icon": "about" }
+        { "type": "link", "label": "Posts", "href": "/posts/", "icon": "writing" },
+        { "type": "link", "label": "About", "href": "/about/", "icon": "about" }
       ]
     },
     {
-      "label": "주제",
+      "label": "Tags",
       "items": [
         {
           "type": "tags",
@@ -20,7 +20,7 @@
       ]
     },
     {
-      "label": "카테고리",
+      "label": "Categories",
       "items": [
         {
           "type": "categories",

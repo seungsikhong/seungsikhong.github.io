@@ -1,0 +1,9 @@
+[
+  {
+    "id": "ai-basics",
+    "label": "AI Basics",
+    "category": "AI",
+    "description": "AI와 인공신경망의 기초 개념을 차근차근 정리합니다.",
+    "order": 1
+  }
+]

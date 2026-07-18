@@ -5,6 +5,15 @@ type PostTagConfig = {
   menu?: boolean
 }
 
+function getTaxonomySlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^\p{Letter}\p{Number}]+/gu, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 function normalizeTagConfig(tag: string | PostTagConfig): PostTagConfig {
   if (typeof tag === 'string') return { label: tag }
   if (tag && typeof tag === 'object') return tag
@@ -24,6 +33,16 @@ if (tagConfig.some((tag) => typeof tag.label !== 'string' || !tag.label.trim()))
 export const POST_TAGS = tagConfig
   .map((tag) => tag.label.trim())
   .filter(Boolean)
+
+if (new Set(POST_TAGS).size !== POST_TAGS.length) {
+  throw new Error('Duplicate post tag.')
+}
+
+const POST_TAG_SLUGS = POST_TAGS.map(getTaxonomySlug)
+
+if (new Set(POST_TAG_SLUGS).size !== POST_TAG_SLUGS.length) {
+  throw new Error('Duplicate post tag slug.')
+}
 
 export const POST_MENU_TAGS = tagConfig
   .filter((tag) => tag.menu)

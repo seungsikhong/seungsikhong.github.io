@@ -2,6 +2,7 @@ import { defineCollection } from 'astro:content'
 import { glob } from 'astro/loaders'
 import { z } from 'astro/zod'
 import { POST_CATEGORIES } from './content/categories'
+import { POST_COLLECTION_IDS } from './content/collections'
 import { POST_TAGS } from './content/tags'
 
 const categorySchema = z.string().refine((category) => POST_CATEGORIES.includes(category), {
@@ -10,6 +11,10 @@ const categorySchema = z.string().refine((category) => POST_CATEGORIES.includes(
 
 const tagSchema = z.string().refine((tag) => POST_TAGS.includes(tag), {
   message: 'Tag is not registered in src/config/post-tags.json.',
+})
+
+const collectionSchema = z.string().refine((collection) => POST_COLLECTION_IDS.includes(collection), {
+  message: 'Collection is not registered in src/config/post-collections.json.',
 })
 
 const posts = defineCollection({
@@ -25,6 +30,9 @@ const posts = defineCollection({
     updatedAt: z.coerce.date().optional(),
     draft: z.boolean().default(false),
     comments: z.boolean().default(false),
+    collection: collectionSchema.optional(),
+    collectionOrder: z.number().int().positive().optional(),
+    showCollection: z.boolean().optional(),
     tags: z.array(tagSchema).default([]),
     ogImage: z.string().optional(),
   }),
