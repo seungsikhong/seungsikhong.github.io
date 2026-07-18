@@ -1,0 +1,617 @@
+---
+import LeftSidebar from '../components/layout/LeftSidebar.astro'
+import { ThemeToggle } from '../components/ui/theme-toggle'
+import { buildNavigationGroups } from '../config/navigation'
+import {
+  getAnalyticsCountEndpoint,
+  getViewCounterEndpoint,
+  hasAnalyticsProviderConfig,
+  hasViewCounterConfig,
+  siteMeta,
+} from '../config/site'
+import { getPublishedPosts } from '../utils/content'
+import { buildCategoryItems } from '../utils/taxonomy'
+import '../styles/global.css'
+
+interface Props {
+  title?: string
+  description?: string
+  showRightRail?: boolean
+  ogType?: 'website' | 'article'
+  ogImage?: string
+  ogImageAlt?: string
+  robots?: string
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[]
+}
+
+const {
+  title = siteMeta.title,
+  description = siteMeta.description,
+  showRightRail = false,
+  ogType = 'website',
+  ogImage,
+  ogImageAlt = siteMeta.ogImageAlt,
+  robots = 'index,follow,max-image-preview:large',
+  jsonLd,
+} = Astro.props
+
+const posts = await getPublishedPosts()
+const navigationGroups = buildNavigationGroups(posts)
+const topicItems = buildCategoryItems(posts)
+const pageTitle = title === siteMeta.title ? title : `${title} | ${siteMeta.name}`
+const analyticsConfigured = hasAnalyticsProviderConfig()
+const analyticsCountEndpoint = getAnalyticsCountEndpoint()
+const viewCounterConfigured = hasViewCounterConfig()
+const viewCounterEndpoint = getViewCounterEndpoint()
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? siteMeta.url).toString()
+const ogImageUrl = new URL(ogImage ?? siteMeta.ogImage, Astro.site ?? siteMeta.url).toString()
+const rssUrl = new URL('/rss.xml', Astro.site ?? siteMeta.url).toString()
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: siteMeta.name,
+  headline: siteMeta.title,
+  url: siteMeta.url,
+  description: siteMeta.description,
+  author: {
+    '@type': 'Person',
+    name: siteMeta.author,
+    url: siteMeta.authorUrl,
+  },
+  inLanguage: 'ko',
+}
+const jsonLdItems = [websiteSchema, ...(Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [])]
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    <meta name="author" content={siteMeta.author} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={siteMeta.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:locale" content={siteMeta.locale} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta name="twitter:card" content={siteMeta.twitterCard} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="alternate" type="application/rss+xml" title={`${siteMeta.name} RSS`} href={rssUrl} />
+    <link rel="icon" type="image/svg+xml" href="/h2s-mark.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#0b1020" />
+    {
+      jsonLdItems.map((item) => (
+        <script type="application/ld+json" set:html={JSON.stringify(item)}></script>
+      ))
+    }
+    {
+      analyticsConfigured && (
+        <script
+          async
+          data-goatcounter={analyticsCountEndpoint}
+          src="https://gc.zgo.at/count.js"
+          crossorigin="anonymous"
+        ></script>
+      )
+    }
+    <script is:inline>
+      (() => {
+        const validThemes = ['system', 'light', 'dark']
+        let savedTheme = 'system'
+        try {
+          savedTheme = localStorage.getItem('site:theme') || 'system'
+        } catch {}
+        if (!validThemes.includes(savedTheme)) savedTheme = 'system'
+        const resolved =
+          savedTheme === 'system'
+            ? window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light'
+            : savedTheme
+
+        document.documentElement.dataset.themePreference = savedTheme
+        document.documentElement.dataset.theme = resolved
+        document.documentElement.lang = 'ko'
+        document.documentElement.classList.toggle('dark', resolved === 'dark')
+        document.documentElement.style.colorScheme = resolved
+      })()
+    </script>
+  </head>
+  <body
+    class="min-h-screen bg-background text-foreground"
+    data-right-available={showRightRail ? 'true' : 'false'}
+    data-left-visible="false"
+    data-right-visible="false"
+    data-left-pinned="false"
+    data-right-pinned="false"
+    data-utility-visible="true"
+  >
+    <div class="edge-trigger edge-trigger-left" data-left-trigger aria-hidden="true">
+      <span class="edge-trigger-label">메뉴</span>
+    </div>
+    {
+      showRightRail && (
+        <div class="edge-trigger edge-trigger-right" data-right-trigger aria-hidden="true">
+          <span class="edge-trigger-label">목차</span>
+        </div>
+      )
+    }
+
+    <div class="utility-dock" data-utility-dock>
+      <button
+        class="inline-flex h-10 items-center justify-center rounded-full border border-border/70 bg-background/82 px-3 text-sm text-foreground backdrop-blur-md transition hover:bg-accent hover:text-accent-foreground lg:hidden"
+        type="button"
+        data-toggle-left
+      >
+        <span class="visually-hidden">좌측 메뉴 토글</span>
+        <span>메뉴</span>
+      </button>
+
+      {
+        showRightRail && (
+          <button
+            class="inline-flex h-10 items-center justify-center rounded-full border border-border/70 bg-background/82 px-3 text-sm text-foreground backdrop-blur-md transition hover:bg-accent hover:text-accent-foreground lg:hidden"
+            type="button"
+            data-toggle-right
+          >
+            <span class="visually-hidden">우측 레일 토글</span>
+            <span>목차</span>
+          </button>
+        )
+      }
+
+      <ThemeToggle client:load />
+
+      <button
+        class="hidden h-10 items-center justify-center rounded-full border border-border/70 bg-background/82 px-3 text-xs text-muted-foreground backdrop-blur-md transition hover:bg-accent hover:text-accent-foreground lg:inline-flex"
+        type="button"
+        data-utility-hide
+      >
+        <span>숨기기</span>
+      </button>
+    </div>
+
+    <button
+      class="utility-peek"
+      type="button"
+      data-utility-peek
+      aria-label="상단 유틸리티 열기"
+    >
+      UI
+    </button>
+
+    <div class="site-shell">
+      <aside class="site-sidebar" data-left-panel>
+        <div class="min-h-0 flex-1">
+          <LeftSidebar
+            groups={navigationGroups}
+            pathname={Astro.url.pathname}
+            stats={{ posts: posts.length, topics: topicItems.length }}
+          />
+        </div>
+        <div class="panel-control">
+          <button class="panel-pin ml-auto" type="button" data-pin-left>
+            <span data-pin-left-label>자동</span>
+          </button>
+        </div>
+      </aside>
+
+      <div class="site-content">
+        <main class="page-panel">
+          <slot />
+        </main>
+      </div>
+
+      {
+        showRightRail && (
+          <aside class="site-rail" data-right-panel>
+            <div class="min-h-0 flex-1">
+              <slot name="right" />
+            </div>
+            <div class="panel-control">
+              <button class="panel-pin ml-auto" type="button" data-pin-right>
+                <span data-pin-right-label>자동</span>
+              </button>
+            </div>
+          </aside>
+        )
+      }
+    </div>
+
+    <button class="layout-scrim" type="button" aria-label="패널 닫기" data-close-panels></button>
+
+    <script is:inline>
+      (() => {
+        const body = document.body
+        const keys = {
+          leftPinned: 'site:left-pinned',
+          rightPinned: 'site:right-pinned',
+        }
+
+        const rightAvailable = body.dataset.rightAvailable === 'true'
+        const leftButtons = Array.from(document.querySelectorAll('[data-toggle-left]'))
+        const rightButtons = Array.from(document.querySelectorAll('[data-toggle-right]'))
+        const leftTrigger = document.querySelector('[data-left-trigger]')
+        const rightTrigger = document.querySelector('[data-right-trigger]')
+        const leftPanel = document.querySelector('[data-left-panel]')
+        const rightPanel = document.querySelector('[data-right-panel]')
+        const leftPinButton = document.querySelector('[data-pin-left]')
+        const rightPinButton = document.querySelector('[data-pin-right]')
+        const scrim = document.querySelector('[data-close-panels]')
+        const utilityDock = document.querySelector('[data-utility-dock]')
+        const utilityPeek = document.querySelector('[data-utility-peek]')
+        const utilityHide = document.querySelector('[data-utility-hide]')
+        const closeTimers = { left: 0, right: 0 }
+        let utilityTimer = 0
+
+        const getStoredValue = (key) => {
+          try {
+            return localStorage.getItem(key)
+          } catch {
+            return null
+          }
+        }
+        const setStoredValue = (key, value) => {
+          try {
+            localStorage.setItem(key, value)
+          } catch {}
+        }
+
+        const state = {
+          leftPinned: getStoredValue(keys.leftPinned) === 'true',
+          rightPinned: getStoredValue(keys.rightPinned) === 'true',
+          leftHover: false,
+          rightHover: false,
+          leftMobile: false,
+          rightMobile: false,
+          utilityDismissed: false,
+        }
+
+        const isDesktop = () => window.innerWidth > 1080
+
+        const showUtility = (force = false) => {
+          if (!force && state.utilityDismissed && isDesktop()) return
+          body.dataset.utilityVisible = 'true'
+        }
+
+        const hideUtility = (manual = false) => {
+          if (!isDesktop()) return
+          if (manual) state.utilityDismissed = true
+          window.clearTimeout(utilityTimer)
+          body.dataset.utilityVisible = 'false'
+        }
+
+        const scheduleUtilityHide = () => {
+          window.clearTimeout(utilityTimer)
+          if (!isDesktop()) {
+            state.utilityDismissed = false
+            showUtility()
+            return
+          }
+
+          if (state.utilityDismissed) return
+
+          utilityTimer = window.setTimeout(() => {
+            hideUtility()
+          }, 4200)
+        }
+
+        const updatePinButtons = () => {
+          document.querySelectorAll('[data-pin-left-label]').forEach((node) => {
+            node.textContent = state.leftPinned ? '고정됨' : '자동'
+          })
+          document.querySelectorAll('[data-pin-right-label]').forEach((node) => {
+            node.textContent = state.rightPinned ? '고정됨' : '자동'
+          })
+          if (leftPinButton instanceof HTMLButtonElement) {
+            leftPinButton.setAttribute('aria-pressed', state.leftPinned ? 'true' : 'false')
+          }
+          if (rightPinButton instanceof HTMLButtonElement) {
+            rightPinButton.setAttribute('aria-pressed', state.rightPinned ? 'true' : 'false')
+          }
+        }
+
+        const syncPanels = () => {
+          const desktop = isDesktop()
+          const leftVisible = desktop ? state.leftPinned || state.leftHover : state.leftMobile
+          const rightVisible = rightAvailable
+            ? desktop
+              ? state.rightPinned || state.rightHover
+              : state.rightMobile
+            : false
+
+          body.dataset.leftVisible = leftVisible ? 'true' : 'false'
+          body.dataset.rightVisible = rightVisible ? 'true' : 'false'
+          body.dataset.leftPinned = state.leftPinned ? 'true' : 'false'
+          body.dataset.rightPinned = state.rightPinned ? 'true' : 'false'
+
+          leftButtons.forEach((button) => {
+            if (button instanceof HTMLButtonElement) {
+              button.setAttribute('aria-pressed', leftVisible ? 'true' : 'false')
+            }
+          })
+
+          rightButtons.forEach((button) => {
+            if (button instanceof HTMLButtonElement) {
+              button.setAttribute('aria-pressed', rightVisible ? 'true' : 'false')
+            }
+          })
+
+          updatePinButtons()
+        }
+
+        const setPinned = (side, value, persist = true) => {
+          if (side === 'left') {
+            state.leftPinned = value
+            if (value) state.leftHover = true
+            if (persist) setStoredValue(keys.leftPinned, value ? 'true' : 'false')
+          } else if (side === 'right' && rightAvailable) {
+            state.rightPinned = value
+            if (value) state.rightHover = true
+            if (persist) setStoredValue(keys.rightPinned, value ? 'true' : 'false')
+          }
+
+          syncPanels()
+        }
+
+        const setMobileVisible = (side, value) => {
+          if (isDesktop()) return
+
+          if (side === 'left') {
+            state.leftMobile = value
+          } else if (side === 'right' && rightAvailable) {
+            state.rightMobile = value
+          }
+
+          syncPanels()
+        }
+
+        syncPanels()
+        scheduleUtilityHide()
+
+        leftButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            setMobileVisible('left', body.dataset.leftVisible !== 'true')
+            showUtility()
+            scheduleUtilityHide()
+          })
+        })
+
+        rightButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            setMobileVisible('right', body.dataset.rightVisible !== 'true')
+            showUtility()
+            scheduleUtilityHide()
+          })
+        })
+
+        leftPinButton?.addEventListener('click', () => {
+          setPinned('left', !state.leftPinned)
+          showUtility()
+          scheduleUtilityHide()
+        })
+
+        rightPinButton?.addEventListener('click', () => {
+          setPinned('right', !state.rightPinned)
+          showUtility()
+          scheduleUtilityHide()
+        })
+
+        const scheduleClose = (side) => {
+          window.clearTimeout(closeTimers[side])
+          closeTimers[side] = window.setTimeout(() => {
+            if (!isDesktop()) return
+
+            const panel = side === 'left' ? leftPanel : rightPanel
+            const trigger = side === 'left' ? leftTrigger : rightTrigger
+            const pinned = side === 'left' ? state.leftPinned : state.rightPinned
+
+            if (pinned) return
+            if (panel instanceof HTMLElement && panel.matches(':hover')) return
+            if (trigger instanceof HTMLElement && trigger.matches(':hover')) return
+
+            if (side === 'left') {
+              state.leftHover = false
+            } else {
+              state.rightHover = false
+            }
+
+            syncPanels()
+          }, 320)
+        }
+
+        const openHover = (side) => {
+          if (!isDesktop()) return
+
+          window.clearTimeout(closeTimers[side])
+          if (side === 'left') {
+            state.leftHover = true
+          } else if (rightAvailable) {
+            state.rightHover = true
+          }
+
+          syncPanels()
+        }
+
+        leftTrigger?.addEventListener('mouseenter', () => openHover('left'))
+        leftTrigger?.addEventListener('mouseleave', () => scheduleClose('left'))
+        leftPanel?.addEventListener('mouseenter', () => openHover('left'))
+        leftPanel?.addEventListener('mouseleave', () => scheduleClose('left'))
+
+        rightTrigger?.addEventListener('mouseenter', () => openHover('right'))
+        rightTrigger?.addEventListener('mouseleave', () => scheduleClose('right'))
+        rightPanel?.addEventListener('mouseenter', () => openHover('right'))
+        rightPanel?.addEventListener('mouseleave', () => scheduleClose('right'))
+
+        scrim?.addEventListener('click', () => {
+          state.leftMobile = false
+          state.rightMobile = false
+          syncPanels()
+        })
+
+        utilityDock?.addEventListener('mouseenter', () => {
+          showUtility(true)
+          window.clearTimeout(utilityTimer)
+        })
+
+        utilityDock?.addEventListener('mouseleave', () => {
+          scheduleUtilityHide()
+        })
+
+        utilityHide?.addEventListener('click', () => {
+          hideUtility(true)
+        })
+
+        utilityPeek?.addEventListener('click', () => {
+          state.utilityDismissed = false
+          showUtility(true)
+          scheduleUtilityHide()
+        })
+
+        document.addEventListener(
+          'mousemove',
+          (event) => {
+            if (!isDesktop()) return
+            if (event.clientY > 88) return
+            if (event.clientX < window.innerWidth - 240) return
+
+            if (state.utilityDismissed) return
+            showUtility()
+            scheduleUtilityHide()
+          },
+          { passive: true }
+        )
+
+        window.addEventListener('resize', () => {
+          if (isDesktop()) {
+            state.leftMobile = false
+            state.rightMobile = false
+          } else {
+            state.leftHover = false
+            state.rightHover = false
+            state.utilityDismissed = false
+          }
+
+          syncPanels()
+          scheduleUtilityHide()
+        })
+      })()
+    </script>
+
+    {
+      viewCounterConfigured && (
+        <script is:inline define:vars={{ viewCounterEndpoint }}>
+          (() => {
+            const endpoint = viewCounterEndpoint
+            const targets = Array.from(document.querySelectorAll('[data-view-count-path]'))
+            if (!endpoint || targets.length === 0) return
+
+            const counts = new Map()
+            const paths = [
+              ...new Set(
+                targets
+                  .map((node) => node.dataset.viewCountPath)
+                  .filter((path) => typeof path === 'string' && path.startsWith('/posts/'))
+              ),
+            ]
+            if (paths.length === 0) return
+
+            const parseViews = (value) => {
+              if (typeof value === 'number' && Number.isFinite(value)) return value
+              if (typeof value === 'string') {
+                const normalized = value.replace(/[^0-9.-]/g, '')
+                if (!normalized) return null
+                const parsed = Number(normalized)
+                return Number.isFinite(parsed) ? parsed : null
+              }
+              return null
+            }
+
+            const renderNode = (node) => {
+              const path = node.dataset.viewCountPath
+              if (!path) return
+
+              const fallback = node.dataset.viewCountFallback || '—'
+              const count = counts.get(path)
+              if (typeof count !== 'number') {
+                node.textContent = fallback
+                return
+              }
+
+              const formatted = new Intl.NumberFormat('ko').format(count)
+              node.textContent = `조회 ${formatted}`
+            }
+
+            const renderAll = () => {
+              targets.forEach((node) => renderNode(node))
+            }
+
+            const readCounts = async (pathsToRead) => {
+              if (pathsToRead.length === 0) return
+              try {
+                const url = new URL('/views', endpoint)
+                pathsToRead.forEach((path) => url.searchParams.append('path', path))
+                const response = await fetch(url.toString(), { credentials: 'omit' })
+                if (!response.ok) return
+                const data = await response.json()
+                const responseCounts = data && typeof data.counts === 'object' ? data.counts : {}
+                Object.entries(responseCounts).forEach(([path, value]) => {
+                  const parsed = parseViews(value)
+                  if (parsed !== null) counts.set(path, parsed)
+                })
+              } catch {}
+            }
+
+            const incrementCounts = async () => {
+              const incrementPaths = [
+                ...new Set(
+                  targets
+                    .filter((node) => node.dataset.viewCountIncrement === 'true')
+                    .map((node) => node.dataset.viewCountPath)
+                    .filter(Boolean)
+                ),
+              ]
+
+              await Promise.all(
+                incrementPaths.map(async (path) => {
+                  try {
+                    const response = await fetch(new URL('/views', endpoint).toString(), {
+                      method: 'POST',
+                      credentials: 'omit',
+                      headers: { 'content-type': 'application/json' },
+                      body: JSON.stringify({ path }),
+                    })
+                    if (!response.ok) return
+                    const data = await response.json()
+                    const parsed = parseViews(data?.views)
+                    if (parsed !== null) counts.set(path, parsed)
+                  } catch {}
+                })
+              )
+            }
+
+            ;(async () => {
+              renderAll()
+              await incrementCounts()
+              await readCounts(paths.filter((path) => !counts.has(path)))
+              renderAll()
+            })()
+          })()
+        </script>
+      )
+    }
+  </body>
+</html>

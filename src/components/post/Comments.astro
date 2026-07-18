@@ -1,0 +1,99 @@
+---
+import { commentConfig, hasCommentProviderConfig } from '../../config/site'
+
+interface Props {
+  enabled?: boolean
+}
+
+const { enabled = false } = Astro.props
+const configured = hasCommentProviderConfig()
+---
+
+{
+  enabled && configured && (
+    <section class="mt-14 border-t border-border/70 pt-8 md:pt-10">
+      <div class="border-b border-border/70 pb-5">
+        <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary">Discussion</p>
+        <h2 class="mt-2 text-2xl font-semibold tracking-tight text-foreground">댓글</h2>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          토론이 필요한 글에만 댓글을 열어두고, 나머지는 본문 자체에 집중하도록 둡니다.
+        </p>
+      </div>
+
+      <>
+        <div
+          class="mt-6 min-h-40 rounded-xl border border-border/70 bg-background/55 p-3"
+          data-comments-root
+          data-repo={commentConfig.repo}
+          data-repo-id={commentConfig.repoId}
+          data-category={commentConfig.category}
+          data-category-id={commentConfig.categoryId}
+          data-mapping={commentConfig.mapping}
+          data-strict={commentConfig.strict}
+          data-reactions-enabled={commentConfig.reactionsEnabled}
+          data-emit-metadata={commentConfig.emitMetadata}
+          data-input-position={commentConfig.inputPosition}
+          data-lang={commentConfig.lang}
+          data-theme-light={commentConfig.lightTheme}
+          data-theme-dark={commentConfig.darkTheme}
+        ></div>
+
+        <script is:inline>
+          (() => {
+            const root = document.querySelector('[data-comments-root]')
+            if (!(root instanceof HTMLElement)) return
+            if (root.dataset.loaded === 'true') return
+
+            const theme =
+              document.documentElement.dataset.theme === 'dark'
+                ? root.dataset.themeDark
+                : root.dataset.themeLight
+
+            const script = document.createElement('script')
+            script.src = 'https://giscus.app/client.js'
+            script.async = true
+            script.crossOrigin = 'anonymous'
+            script.setAttribute('data-repo', root.dataset.repo || '')
+            script.setAttribute('data-repo-id', root.dataset.repoId || '')
+            script.setAttribute('data-category', root.dataset.category || '')
+            script.setAttribute('data-category-id', root.dataset.categoryId || '')
+            script.setAttribute('data-mapping', root.dataset.mapping || 'pathname')
+            script.setAttribute('data-strict', root.dataset.strict || '0')
+            script.setAttribute(
+              'data-reactions-enabled',
+              root.dataset.reactionsEnabled || '1'
+            )
+            script.setAttribute('data-emit-metadata', root.dataset.emitMetadata || '0')
+            script.setAttribute('data-input-position', root.dataset.inputPosition || 'top')
+            script.setAttribute('data-lang', root.dataset.lang || 'ko')
+            script.setAttribute('data-theme', theme || 'light')
+
+            root.appendChild(script)
+            root.dataset.loaded = 'true'
+
+            window.addEventListener('site-theme-change', (event) => {
+              const nextTheme =
+                event instanceof CustomEvent && event.detail?.theme === 'dark'
+                  ? root.dataset.themeDark
+                  : root.dataset.themeLight
+
+              const iframe = document.querySelector('iframe.giscus-frame')
+              if (!(iframe instanceof HTMLIFrameElement)) return
+
+              iframe.contentWindow?.postMessage(
+                {
+                  giscus: {
+                    setConfig: {
+                      theme: nextTheme || 'light',
+                    },
+                  },
+                },
+                'https://giscus.app'
+              )
+            })
+          })()
+        </script>
+      </>
+    </section>
+  )
+}

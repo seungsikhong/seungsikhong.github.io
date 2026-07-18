@@ -1,0 +1,49 @@
+version: 2
+
+updates:
+  # npm 패키지 의존성 관리
+  - package-ecosystem: "npm"
+    directory: "/"  # package.json이 있는 루트 디렉토리
+    schedule:
+      interval: "weekly"  # 매주 확인
+      day: "monday"       # 월요일에 실행
+      time: "09:00"       # 오전 9시 (UTC)
+    # 보안 업데이트 설정
+    open-pull-requests-limit: 10  # 최대 10개 PR까지만
+    assignees:
+      - "seungsikhong"  # 본인 계정명으로 변경
+    commit-message:
+      prefix: "npm"
+      prefix-development: "npm-dev"
+      include: "scope"
+    # 버전 업데이트 전략
+    versioning-strategy: increase
+    # 특정 패키지 그룹화 (선택사항)
+    groups:
+      next-js:
+        patterns:
+          - "next*"
+          - "@next/*"
+      react:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      build-tools:
+        patterns:
+          - "eslint*"
+          - "prettier*"
+          - "typescript*"
+
+  # GitHub Actions 워크플로우 의존성 관리
+  - package-ecosystem: "github-actions"
+    directory: "/"  # .github/workflows/ 디렉토리 포함
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    assignees:
+      - "seungsikhong"  # 본인 계정명으로 변경
+    commit-message:
+      prefix: "actions"
+      include: "scope"
