@@ -12,9 +12,9 @@ const imageRoot = join(root, 'public', 'images', 'posts')
 const ogRoot = join(root, 'public', 'og', 'posts')
 const categoriesPath = join(root, 'src', 'config', 'post-categories.json')
 const tagsPath = join(root, 'src', 'config', 'post-tags.json')
-const allowedCategories = JSON.parse(readFileSync(categoriesPath, 'utf8'))
-const rawTags = JSON.parse(readFileSync(tagsPath, 'utf8'))
-const allowedTags = Array.isArray(rawTags)
+let allowedCategories = JSON.parse(readFileSync(categoriesPath, 'utf8'))
+let rawTags = JSON.parse(readFileSync(tagsPath, 'utf8'))
+let allowedTags = Array.isArray(rawTags)
   ? rawTags.map((tag) => (typeof tag === 'string' ? tag : tag?.label))
   : []
 
@@ -34,15 +34,31 @@ if (
   process.exit(1)
 }
 
-const defaultCategory = allowedCategories[0]
-const categoryByNormalizedValue = new Map(
-  allowedCategories.map((category) => [category.trim().toLowerCase(), category])
-)
-const tagByNormalizedValue = new Map(
-  allowedTags.map((tag) => [tag.trim().toLowerCase(), tag])
-)
+let defaultCategory = allowedCategories[0]
+let categoryByNormalizedValue
+let tagByNormalizedValue
 const isInteractive = Boolean(input.isTTY && output.isTTY)
 let promptInterface
+
+const normalizeName = (value) => value.trim().replace(/\s+/g, ' ')
+const normalizeKey = (value) => normalizeName(value).toLowerCase()
+
+const writeJson = (path, value) => {
+  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`)
+}
+
+const refreshMetadataLookups = () => {
+  allowedTags = Array.isArray(rawTags)
+    ? rawTags.map((tag) => (typeof tag === 'string' ? tag : tag?.label))
+    : []
+  defaultCategory = allowedCategories[0]
+  categoryByNormalizedValue = new Map(
+    allowedCategories.map((category) => [normalizeKey(category), category])
+  )
+  tagByNormalizedValue = new Map(allowedTags.map((tag) => [normalizeKey(tag), tag]))
+}
+
+refreshMetadataLookups()
 
 const args = process.argv.slice(2)
 const readArg = (name) => {
@@ -55,7 +71,9 @@ const readArg = (name) => {
 const printUsage = () => {
   console.log('Usage:')
   console.log('  npm run blog:new')
-  console.log('  npm run blog:new -- --title "글 제목" --category "카테고리" --tags "태그1,태그2"')
+  console.log(
+    '  npm run blog:new -- --title "글 제목" --excerpt "글 요약" --category "카테고리" --tags "태그1,태그2"'
+  )
   console.log('  npm run blog:new -- --title "글 제목" --category "카테고리" --slug my-post')
 }
 
@@ -96,6 +114,7 @@ const readChoice = (value, choices, normalizedMap) => {
 }
 
 const providedTitle = readArg('--title')?.trim()
+const providedExcerpt = readArg('--excerpt')?.trim()
 const providedCategory = readArg('--category')?.trim()
 const providedSlug = readArg('--slug')?.trim()
 const providedTags = readArg('--tags')
@@ -103,12 +122,6 @@ const providedTags = readArg('--tags')
 if (args.includes('--help') || args.includes('-h')) {
   printUsage()
   process.exit(0)
-}
-
-if (allowedCategories.length === 0) {
-  fail(`No categories configured: ${categoriesPath}`, [
-    'Add at least one category first, then run blog:new again.',
-  ])
 }
 
 const resolveTitle = async () => {
@@ -128,12 +141,30 @@ const resolveCategory = async () => {
     return readChoice(providedCategory, allowedCategories, categoryByNormalizedValue)
   }
 
+  if (allowedCategories.length === 0 && isInteractive) {
+    const answer = await ask('Category: ')
+    if (!answer) fail('Category is required.')
+    return normalizeName(answer)
+  }
+
   if (!isInteractive) return defaultCategory
 
   console.log('')
   printChoices('Categories', allowedCategories)
   const answer = await ask(`Category [1. ${defaultCategory}]: `)
   return answer ? readChoice(answer, allowedCategories, categoryByNormalizedValue) : defaultCategory
+}
+
+const getDefaultExcerpt = (value) => `${value}에 대해 정리합니다.`
+
+const resolveExcerpt = async (value) => {
+  const defaultExcerpt = getDefaultExcerpt(value)
+  if (providedExcerpt) return providedExcerpt
+
+  if (!isInteractive) return defaultExcerpt
+
+  const answer = await ask(`Excerpt [${defaultExcerpt}]: `)
+  return answer || defaultExcerpt
 }
 
 const parseTags = (value) => [
@@ -156,19 +187,159 @@ const resolveTags = async () => {
   return answer ? parseTags(answer) : []
 }
 
+const getEditDistance = (left, right) => {
+  const a = [...normalizeKey(left)]
+  const b = [...normalizeKey(right)]
+  const matrix = Array.from({ length: a.length + 1 }, (_, row) => [row])
+
+  for (let column = 1; column <= b.length; column += 1) {
+    matrix[0][column] = column
+  }
+
+  for (let row = 1; row <= a.length; row += 1) {
+    for (let column = 1; column <= b.length; column += 1) {
+      const cost = a[row - 1] === b[column - 1] ? 0 : 1
+      matrix[row][column] = Math.min(
+        matrix[row - 1][column] + 1,
+        matrix[row][column - 1] + 1,
+        matrix[row - 1][column - 1] + cost
+      )
+    }
+  }
+
+  return matrix[a.length][b.length]
+}
+
+const findSimilarChoices = (value, choices) => {
+  const key = normalizeKey(value)
+  if (!key) return []
+
+  return choices
+    .map((choice) => {
+      const choiceKey = normalizeKey(choice)
+      const distance = getEditDistance(key, choiceKey)
+      const contains = key.includes(choiceKey) || choiceKey.includes(key)
+      const maxLength = Math.max(key.length, choiceKey.length)
+      const limit = Math.max(1, Math.floor(maxLength * 0.35))
+
+      return {
+        choice,
+        score: contains ? 0 : distance,
+        similar: contains || distance <= limit,
+      }
+    })
+    .filter(({ similar }) => similar)
+    .sort((a, b) => a.score - b.score || a.choice.localeCompare(b.choice))
+    .slice(0, 3)
+    .map(({ choice }) => choice)
+}
+
+const readSimilarChoice = async (type, value, similarChoices, addValue) => {
+  const addIndex = similarChoices.length + 1
+  console.log('')
+  console.log(`Unknown ${type}: ${value}`)
+  printChoices(`Similar ${type}s`, similarChoices)
+  console.log(`  ${addIndex}. Add new ${type}: ${value}`)
+
+  const answer = await ask(`Choose 1-${addIndex}, or c to cancel [${addIndex}]: `)
+  const normalizedAnswer = answer.toLowerCase()
+
+  if (!answer || Number(answer) === addIndex || ['a', 'add', 'new', 'y', 'yes'].includes(normalizedAnswer)) {
+    return addValue(value)
+  }
+
+  if (['c', 'cancel', 'q', 'quit', 'n', 'no'].includes(normalizedAnswer)) {
+    fail(`Canceled ${type} selection.`)
+  }
+
+  const choiceIndex = Number(answer)
+  if (Number.isInteger(choiceIndex) && choiceIndex >= 1 && choiceIndex <= similarChoices.length) {
+    return similarChoices[choiceIndex - 1]
+  }
+
+  const existing = new Map(similarChoices.map((choice) => [normalizeKey(choice), choice])).get(
+    normalizeKey(answer)
+  )
+  if (existing) return existing
+
+  fail(`Invalid ${type} choice: ${answer}`)
+}
+
+const addCategory = (value) => {
+  const name = normalizeName(value)
+  allowedCategories.push(name)
+  writeJson(categoriesPath, allowedCategories)
+  refreshMetadataLookups()
+  console.log(`Added category: ${name}`)
+  return name
+}
+
+const addTag = (value) => {
+  const name = normalizeName(value)
+  rawTags.push({ label: name, menu: false })
+  writeJson(tagsPath, rawTags)
+  refreshMetadataLookups()
+  console.log(`Added tag: ${name} (menu=false)`)
+  return name
+}
+
+const resolveMetadataValue = async ({ type, value, choices, normalizedMap, addValue }) => {
+  const name = normalizeName(value)
+  const existing = normalizedMap.get(normalizeKey(name))
+  if (existing) return existing
+
+  const similarChoices = findSimilarChoices(name, choices)
+  if (similarChoices.length > 0) {
+    if (isInteractive) {
+      return readSimilarChoice(type, name, similarChoices, addValue)
+    }
+
+    fail(`Unknown ${type}: ${name}`, [
+      `Similar ${type}s: ${similarChoices.join(', ')}`,
+      `Run this command in an interactive terminal to choose or add a new ${type}.`,
+    ])
+  }
+
+  return addValue(name)
+}
+
+const resolveCategoryMetadata = async (value) => {
+  if (!value) {
+    fail(`Category is required.`, ['Add a category first or pass --category "Name".'])
+  }
+
+  return resolveMetadataValue({
+    type: 'category',
+    value,
+    choices: allowedCategories,
+    normalizedMap: categoryByNormalizedValue,
+    addValue: addCategory,
+  })
+}
+
+const resolveTagMetadata = async (values) => {
+  const resolvedTags = []
+
+  for (const tag of values) {
+    const resolvedTag = await resolveMetadataValue({
+      type: 'tag',
+      value: tag,
+      choices: allowedTags,
+      normalizedMap: tagByNormalizedValue,
+      addValue: addTag,
+    })
+
+    if (!resolvedTags.includes(resolvedTag)) resolvedTags.push(resolvedTag)
+  }
+
+  return resolvedTags
+}
+
 const title = await resolveTitle()
-const category = await resolveCategory()
-const tags = await resolveTags()
+const category = await resolveCategoryMetadata(await resolveCategory())
+const excerpt = await resolveExcerpt(title)
+const tags = await resolveTagMetadata(await resolveTags())
 closePrompt()
-
-if (!allowedCategories.includes(category)) {
-  fail(`Invalid category: ${category}`, [`Allowed categories: ${allowedCategories.join(', ')}`])
-}
-
-const invalidTags = tags.filter((tag) => !allowedTags.includes(tag))
-if (invalidTags.length > 0) {
-  fail(`Invalid tag(s): ${invalidTags.join(', ')}`, [`Allowed tags: ${allowedTags.join(', ')}`])
-}
 
 const getToday = () => {
   const parts = new Intl.DateTimeFormat('en', {
@@ -353,7 +524,7 @@ if ((await renderPngWithSharp()) || renderPngWithSips()) {
 
 const markdown = `---
 title: ${JSON.stringify(title)}
-excerpt: 검색 결과와 목록에 표시할 한 문장 요약을 적습니다.
+excerpt: ${JSON.stringify(excerpt)}
 category: ${JSON.stringify(category)}
 publishedAt: ${today}
 comments: false
@@ -361,33 +532,31 @@ ${tagsFrontmatter}
 ogImage: ${ogImagePath}
 ---
 
-## 시작하며
+{/*
+도입 문단을 2~3문장으로 적습니다.
+글을 쓰게 된 배경, 이 글에서 다룰 범위, 읽는 사람이 가져갈 내용을 자연스럽게 연결합니다.
+*/}
 
-이 글을 쓰게 된 배경을 적습니다.
+## 핵심 개념
 
-## 본문
+{/*
+주요 개념을 정리합니다.
+글 성격에 맞게 제목은 자유롭게 바꿔도 됩니다.
+*/}
 
-실제 경험, 판단, 결과를 중심으로 작성합니다.
+## 내가 이해한 흐름
 
-## 남길 점
+{/*
+예시, 경험, 판단, 헷갈렸던 지점을 순서대로 적습니다.
+필요하면 README의 MDX 글쓰기 섹션을 참고해 Callout이나 PostImage를 사용합니다.
+*/}
 
-- 나중에 다시 볼 판단이나 다음 실험을 적습니다.
-- \`PostImage\`와 \`Callout\`은 별도 import 없이 사용할 수 있습니다.
+## 정리
 
-\`\`\`mdx
-<Callout type="note" title="메모">
-  결정, 제약, 다시 확인할 내용을 적습니다.
-</Callout>
-
-<PostImage
-  src="/images/posts/${slug}/example.png"
-  alt="이미지 설명"
-  caption="선택 캡션"
-  size="wide"
-  width={1200}
-  height={675}
-/>
-\`\`\`
+{/*
+다시 볼 내용, 남은 질문, 다음 글로 이어질 주제를 적습니다.
+필요 없으면 이 섹션은 삭제합니다.
+*/}
 `
 
 writeFileSync(markdownPath, markdown)

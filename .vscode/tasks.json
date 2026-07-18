@@ -5,7 +5,7 @@
       "label": "Blog: 새 글 만들기",
       "detail": "npm run blog:new",
       "type": "shell",
-      "command": "npm run blog:new -- --title \"${input:postTitle}\" --category \"${input:postCategory}\" --tags \"${input:postTags}\"",
+      "command": "npm run blog:new -- --title \"${input:postTitle}\" --excerpt \"${input:postExcerpt}\" --category \"${input:postCategory}\" --tags \"${input:postTags}\"",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -68,6 +68,12 @@
       "id": "postTitle",
       "type": "promptString",
       "description": "Post title"
+    },
+    {
+      "id": "postExcerpt",
+      "type": "promptString",
+      "description": "One-sentence excerpt for lists, search results, and social previews",
+      "default": ""
     },
     {
       "id": "postCategory",
