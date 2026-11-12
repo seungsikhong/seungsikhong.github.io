@@ -1,0 +1,34 @@
+{
+  "sections": [
+    {
+      "label": "Menu",
+      "items": [
+        { "type": "link", "label": "Posts", "href": "/posts/", "icon": "writing" },
+        { "type": "link", "label": "About", "href": "/about/", "icon": "about" }
+      ]
+    },
+    {
+      "label": "Tags",
+      "items": [
+        {
+          "type": "tags",
+          "source": "menu",
+          "showCounts": true,
+          "includeEmpty": true,
+          "icon": "tag"
+        }
+      ]
+    },
+    {
+      "label": "Categories",
+      "items": [
+        {
+          "type": "categories",
+          "showCounts": true,
+          "includeEmpty": false,
+          "icon": "topic"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+import { defineCollection } from 'astro:content'
+import { glob } from 'astro/loaders'
+import { z } from 'astro/zod'
+import { POST_CATEGORIES } from './content/categories'
+import { POST_COLLECTION_IDS } from './content/collections'
+import { POST_TAGS } from './content/tags'
+
+const categorySchema = z.string().refine((category) => POST_CATEGORIES.includes(category), {
+  message: 'Category is not registered in src/config/post-categories.json.',
+})
+
+const tagSchema = z.string().refine((tag) => POST_TAGS.includes(tag), {
+  message: 'Tag is not registered in src/config/post-tags.json.',
+})
+
+const collectionSchema = z.string().refine((collection) => POST_COLLECTION_IDS.includes(collection), {
+  message: 'Collection is not registered in src/config/post-collections.json.',
+})
+
+const posts = defineCollection({
+  loader: glob({
+    pattern: '**/[^_]*.{md,mdx}',
+    base: './src/content/posts',
+  }),
+  schema: z.object({
+    title: z.string(),
+    excerpt: z.string(),
+    category: categorySchema,
+    publishedAt: z.coerce.date(),
+    updatedAt: z.coerce.date().optional(),
+    draft: z.boolean().default(false),
+    comments: z.boolean().default(false),
+    collection: collectionSchema.optional(),
+    collectionOrder: z.number().int().positive().optional(),
+    showCollection: z.boolean().optional(),
+    tags: z.array(tagSchema).default([]),
+    ogImage: z.string().optional(),
+  }).refine((post) => post.draft || post.excerpt.trim().length > 0, {
+    message: '게시 전에 excerpt에 글 요약을 입력해 주세요.',
+    path: ['excerpt'],
+  }),
+})
+
+export const collections = { posts }

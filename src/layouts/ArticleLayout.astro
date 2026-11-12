@@ -1,0 +1,371 @@
+---
+import SiteLayout from './SiteLayout.astro'
+import RightRail from '../components/post/RightRail.astro'
+import Comments from '../components/post/Comments.astro'
+import { getEnabledShareChannels, siteMeta } from '../config/site'
+import { formatDate } from '../utils/date'
+import { getCategoryHref, getTagHref } from '../utils/taxonomy'
+
+interface Heading {
+  depth: number
+  slug: string
+  text: string
+}
+
+interface CollectionNavigationPost {
+  title: string
+  href: string
+  order?: number
+  current?: boolean
+}
+
+interface CollectionNavigation {
+  label: string
+  description?: string
+  currentIndex: number
+  posts: CollectionNavigationPost[]
+  previousPost?: Pick<CollectionNavigationPost, 'title' | 'href'>
+  nextPost?: Pick<CollectionNavigationPost, 'title' | 'href'>
+}
+
+interface Props {
+  title: string
+  description: string
+  category: string
+  publishedAt: Date
+  updatedAt?: Date
+  tags?: string[]
+  headings?: Heading[]
+  comments?: boolean
+  ogImage?: string
+  collectionNavigation?: CollectionNavigation
+}
+
+const {
+  title,
+  description,
+  category,
+  publishedAt,
+  updatedAt,
+  tags = [],
+  headings = [],
+  comments = false,
+  ogImage,
+  collectionNavigation,
+} = Astro.props
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? siteMeta.url).toString()
+const articleImageUrl = new URL(ogImage ?? siteMeta.ogImage, Astro.site ?? siteMeta.url).toString()
+const enabledShareChannels = getEnabledShareChannels()
+const categoryUrl = new URL(getCategoryHref(category), Astro.site ?? siteMeta.url).toString()
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description,
+  url: canonicalUrl,
+  image: articleImageUrl,
+  datePublished: publishedAt.toISOString(),
+  dateModified: (updatedAt ?? publishedAt).toISOString(),
+  author: {
+    '@type': 'Person',
+    name: siteMeta.author,
+    url: siteMeta.authorUrl,
+  },
+  publisher: {
+    '@type': 'Person',
+    name: siteMeta.author,
+    url: siteMeta.authorUrl,
+  },
+  articleSection: category,
+  keywords: tags,
+  inLanguage: 'ko',
+  mainEntityOfPage: canonicalUrl,
+}
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: siteMeta.url,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: category,
+      item: categoryUrl,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: title,
+      item: canonicalUrl,
+    },
+  ],
+}
+---
+
+<SiteLayout
+  title={title}
+  description={description}
+  showRightRail={true}
+  ogType="article"
+  ogImage={ogImage}
+  ogImageAlt={title}
+  jsonLd={[articleSchema, breadcrumbSchema]}
+>
+  <div class="mx-auto flex w-full max-w-5xl flex-col">
+    <article class="mx-auto w-full max-w-3xl">
+      <header class="border-b border-border/70 pb-8">
+        <div class="mb-6">
+          <a href="/" class="article-home-link" aria-label="Go home">
+            <span>Home</span>
+          </a>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <a
+            href={getCategoryHref(category)}
+            class="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-semibold uppercase tracking-[0.16em] text-primary transition hover:bg-primary/14 hover:text-primary/90"
+          >
+            {category}
+          </a>
+          <span>{formatDate(publishedAt)}</span>
+          <span
+            data-view-count-path={Astro.url.pathname}
+            data-view-count-increment="true"
+            data-view-count-fallback="Views —"
+          >
+            Views —
+          </span>
+          {
+            updatedAt && (
+              <span>Updated {formatDate(updatedAt)}</span>
+            )
+          }
+          <span>{comments ? 'Comments on' : 'Comments off'}</span>
+        </div>
+
+        <h1 class="mt-5 text-4xl font-semibold tracking-[-0.03em] text-foreground md:text-[3.35rem] md:leading-[1.05]">
+          {title}
+        </h1>
+        <p class="mt-5 max-w-2xl text-[1.05rem] leading-8 text-muted-foreground">{description}</p>
+
+        {
+          tags.length > 0 && (
+            <ul class="mt-6 flex flex-wrap gap-2" aria-label="Tags">
+              {tags.map((tag) => (
+                <li>
+                  <a
+                    class="inline-flex rounded-full border border-border/70 bg-transparent px-3 py-1 text-sm text-muted-foreground transition hover:border-primary/25 hover:bg-primary/10 hover:text-foreground"
+                    href={getTagHref(tag)}
+                  >
+                    {tag}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </header>
+
+      <div class="article-content mt-12" data-reading-area>
+        <slot />
+      </div>
+
+      {
+        collectionNavigation && (
+          <aside class="mt-16 border-t border-border/70 pt-8" aria-labelledby="collection-navigation-title">
+            <div class="rounded-[1.35rem] border border-border/70 bg-card/45 p-5">
+              <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p class="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-primary">
+                    Collection
+                  </p>
+                  <h2
+                    id="collection-navigation-title"
+                    class="mt-2 text-xl font-semibold tracking-tight text-foreground"
+                  >
+                    {collectionNavigation.label}
+                  </h2>
+                  {collectionNavigation.description && (
+                    <p class="mt-2 max-w-xl text-sm leading-7 text-muted-foreground">
+                      {collectionNavigation.description}
+                    </p>
+                  )}
+                </div>
+                <p class="shrink-0 rounded-full bg-muted/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                  Part {collectionNavigation.currentIndex + 1} of {collectionNavigation.posts.length}
+                </p>
+              </div>
+
+              {
+                collectionNavigation.posts.length > 1 && (
+                  <ol class="mt-5 space-y-2">
+                    {collectionNavigation.posts.map((collectionPost, index) => (
+                      <li>
+                        <a
+                          class:list={[
+                            'flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm transition',
+                            collectionPost.current
+                              ? 'border-primary/25 bg-primary/10 text-foreground'
+                              : 'border-transparent text-muted-foreground hover:border-border/70 hover:bg-accent/50 hover:text-foreground',
+                          ]}
+                          href={collectionPost.href}
+                          aria-current={collectionPost.current ? 'page' : undefined}
+                        >
+                          <span class="w-7 shrink-0 font-semibold tabular-nums text-primary">
+                            {String(collectionPost.order ?? index + 1).padStart(2, '0')}
+                          </span>
+                          <span class="min-w-0 flex-1 truncate">{collectionPost.title}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                )
+              }
+
+              {(collectionNavigation.previousPost || collectionNavigation.nextPost) && (
+                <div class="mt-5 grid gap-3 border-t border-border/70 pt-5 md:grid-cols-2">
+                  {collectionNavigation.previousPost ? (
+                    <a
+                      class="rounded-2xl border border-border/70 px-4 py-3 text-sm text-muted-foreground transition hover:border-primary/25 hover:bg-primary/10 hover:text-foreground"
+                      href={collectionNavigation.previousPost.href}
+                    >
+                      <span class="block text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                        Previous
+                      </span>
+                      <span class="mt-1 block truncate">{collectionNavigation.previousPost.title}</span>
+                    </a>
+                  ) : (
+                    <span aria-hidden="true" />
+                  )}
+                  {collectionNavigation.nextPost && (
+                    <a
+                      class="rounded-2xl border border-border/70 px-4 py-3 text-sm text-muted-foreground transition hover:border-primary/25 hover:bg-primary/10 hover:text-foreground md:text-right"
+                      href={collectionNavigation.nextPost.href}
+                    >
+                      <span class="block text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                        Next
+                      </span>
+                      <span class="mt-1 block truncate">{collectionNavigation.nextPost.title}</span>
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          </aside>
+        )
+      }
+    </article>
+
+    {
+      enabledShareChannels.length > 0 && (
+        <section class="mx-auto mt-14 w-full max-w-3xl border-t border-border/70 pt-8">
+          <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <h2 class="text-[0.78rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Share
+            </h2>
+            <div class="flex flex-wrap gap-2.5" data-share-root data-share-url={canonicalUrl} data-share-title={title}>
+              {
+                enabledShareChannels.includes('copy') && (
+                  <button class="share-button" type="button" data-share-copy>
+                    <span>Copy link</span>
+                  </button>
+                )
+              }
+              {
+                enabledShareChannels.includes('x') && (
+                  <a
+                    class="share-button"
+                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(canonicalUrl)}&text=${encodeURIComponent(title)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span>Share on X</span>
+                  </a>
+                )
+              }
+              {
+                enabledShareChannels.includes('linkedin') && (
+                  <a
+                    class="share-button"
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonicalUrl)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span>Share on LinkedIn</span>
+                  </a>
+                )
+              }
+              {
+                enabledShareChannels.includes('facebook') && (
+                  <a
+                    class="share-button"
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonicalUrl)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span>Share on Facebook</span>
+                  </a>
+                )
+              }
+              {
+                enabledShareChannels.includes('email') && (
+                  <a
+                    class="share-button"
+                    href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${title}\n${canonicalUrl}`)}`}
+                  >
+                    <span>Share by email</span>
+                  </a>
+                )
+              }
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    <div class="mx-auto w-full max-w-3xl">
+      <Comments enabled={comments} />
+    </div>
+  </div>
+
+  <Fragment slot="right">
+    <RightRail headings={headings} />
+  </Fragment>
+
+  <script is:inline>
+    (() => {
+      const root = document.querySelector('[data-share-root]')
+      const copyButton = document.querySelector('[data-share-copy]')
+      if (!(root instanceof HTMLElement) || !(copyButton instanceof HTMLButtonElement)) return
+
+      const shareUrl = root.dataset.shareUrl || window.location.href
+      const shareTitle = root.dataset.shareTitle || document.title
+
+      copyButton.addEventListener('click', async () => {
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: shareTitle, url: shareUrl })
+            return
+          } catch {}
+        }
+
+        try {
+          await navigator.clipboard.writeText(shareUrl)
+          const label = copyButton.querySelector('span')
+          if (!(label instanceof HTMLElement)) return
+          const previous = label.textContent || 'Copy link'
+          label.textContent = 'Copied'
+          window.setTimeout(() => {
+            label.textContent = previous
+          }, 1400)
+        } catch {}
+      })
+    })()
+  </script>
+</SiteLayout>

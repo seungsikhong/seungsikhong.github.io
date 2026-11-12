@@ -1,0 +1,24 @@
+{
+  "PostImage": {
+    "scope": "mdx",
+    "prefix": "postimage",
+    "body": [
+      "<PostImage",
+      "  src=\"${1:/images/posts/ai/01-my-post/example.png}\"",
+      "  alt=\"${2}\"",
+      "  size=\"${3|narrow,wide,full|}\"",
+      "/>"
+    ],
+    "description": "Insert a post image component"
+  },
+  "Callout": {
+    "scope": "mdx",
+    "prefix": "callout",
+    "body": [
+      "<Callout type=\"${1|note,tip,warning|}\" title=\"${2:메모}\">",
+      "  ${3}",
+      "</Callout>"
+    ],
+    "description": "Insert a callout component"
+  }
+}

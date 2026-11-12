@@ -1,0 +1,195 @@
+{
+  "version": "2.0.0",
+  "osx": {
+    "options": {
+      "env": {
+        "PATH": "${env:PATH}:/opt/homebrew/bin:/usr/local/bin"
+      }
+    }
+  },
+  "tasks": [
+    {
+      "label": "Blog: 새 글 만들기",
+      "detail": "npm run blog:new",
+      "type": "process",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/scripts/new-post.mjs",
+        "--title", "${input:postTitle}",
+        "--excerpt", "${input:postExcerpt}",
+        "--category", "${input:postCategory}",
+        "--collection", "${input:postCollection}",
+        "--collection-order", "${input:postCollectionOrder}",
+        "--tags", "${input:postTags}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Blog: 카테고리/태그/컬렉션 조회",
+      "detail": "npm run blog:meta",
+      "type": "npm",
+      "script": "blog:meta",
+      "problemMatcher": []
+    },
+    {
+      "label": "Blog: 카테고리 추가",
+      "detail": "npm run blog:category:add",
+      "type": "process",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/scripts/add-post-meta.mjs",
+        "category", "--name", "${input:categoryName}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Blog: 태그 추가",
+      "detail": "npm run blog:tag:add",
+      "type": "process",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/scripts/add-post-meta.mjs",
+        "tag", "--name", "${input:tagName}",
+        "--menu", "${input:tagMenu}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Blog: 컬렉션 추가",
+      "detail": "npm run blog:collection:add",
+      "type": "process",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/scripts/add-post-meta.mjs",
+        "collection", "--name", "${input:collectionName}",
+        "--category", "${input:collectionCategory}",
+        "--description", "${input:collectionDescription}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Blog: 이미지 추가",
+      "detail": "npm run blog:image",
+      "type": "process",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/scripts/add-image.mjs",
+        "--slug", "${input:imagePostSlug}", "${input:imagePath}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Blog: 개발 서버 실행",
+      "detail": "npm run dev",
+      "type": "npm",
+      "script": "dev",
+      "problemMatcher": []
+    },
+    {
+      "label": "Blog: 빌드",
+      "detail": "npm run build",
+      "type": "npm",
+      "script": "build",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "postTitle",
+      "type": "promptString",
+      "description": "Post title"
+    },
+    {
+      "id": "postExcerpt",
+      "type": "promptString",
+      "description": "Post summary. Leave empty while drafting; fill it in before publishing.",
+      "default": ""
+    },
+    {
+      "id": "postCategory",
+      "type": "promptString",
+      "description": "Category",
+      "default": ""
+    },
+    {
+      "id": "postCollection",
+      "type": "promptString",
+      "description": "Collection id or name. Leave empty for no collection.",
+      "default": ""
+    },
+    {
+      "id": "postCollectionOrder",
+      "type": "promptString",
+      "description": "Collection order. Leave empty to use the next number.",
+      "default": ""
+    },
+    {
+      "id": "postTags",
+      "type": "promptString",
+      "description": "Tags, comma-separated",
+      "default": ""
+    },
+    {
+      "id": "categoryName",
+      "type": "promptString",
+      "description": "Category to add"
+    },
+    {
+      "id": "tagName",
+      "type": "promptString",
+      "description": "Tag to add"
+    },
+    {
+      "id": "collectionName",
+      "type": "promptString",
+      "description": "Collection name"
+    },
+    {
+      "id": "collectionCategory",
+      "type": "promptString",
+      "description": "Collection category",
+      "default": ""
+    },
+    {
+      "id": "collectionDescription",
+      "type": "promptString",
+      "description": "Collection description",
+      "default": ""
+    },
+    {
+      "id": "tagMenu",
+      "type": "pickString",
+      "description": "Show this tag in the navigation menu?",
+      "options": [
+        "false",
+        "true"
+      ],
+      "default": "false"
+    },
+    {
+      "id": "imagePostSlug",
+      "type": "promptString",
+      "description": "Post slug, for example ai/01-artificial-intelligence"
+    },
+    {
+      "id": "imagePath",
+      "type": "promptString",
+      "description": "Absolute image path"
+    }
+  ]
+}

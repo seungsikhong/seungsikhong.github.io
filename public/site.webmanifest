@@ -1,0 +1,18 @@
+{
+  "name": "SeungSik Hong",
+  "short_name": "SeungSik",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "lang": "ko",
+  "description": "SeungSik Hong의 기술 블로그입니다. 개발하며 쌓은 경험과 생각을 기록합니다.",
+  "icons": [
+    {
+      "src": "/h2s-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

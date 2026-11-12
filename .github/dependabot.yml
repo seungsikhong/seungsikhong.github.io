@@ -1,0 +1,50 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    assignees:
+      - "seungsikhong"
+    commit-message:
+      prefix: "npm"
+      prefix-development: "npm-dev"
+      include: "scope"
+    versioning-strategy: increase
+    groups:
+      astro:
+        patterns:
+          - "astro"
+          - "@astrojs/*"
+      react:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      styling:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "tw-animate-css"
+          - "class-variance-authority"
+          - "clsx"
+          - "tailwind-merge"
+      build-tools:
+        patterns:
+          - "typescript*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    assignees:
+      - "seungsikhong"
+    commit-message:
+      prefix: "actions"
+      include: "scope"
